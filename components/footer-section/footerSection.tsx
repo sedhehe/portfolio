@@ -10,9 +10,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { copyToClipboard, handleNavClick } from "@/lib/utils";
 import GithubIcon from "@/public/assets/github-mark.svg";
 import LinkedInIcon from "@/public/assets/LinkedIn_icon.svg";
 import Mail from "@/public/assets/mail.svg";
+import Copy from "@/public/assets/copy.svg";
+import Check from "@/public/assets/check.svg";
 
 const navItems = {
   labels: ["home", "about", "skills", "experience", "projects"],
@@ -22,26 +25,24 @@ const navItems = {
 const email = "rvivek0310@gmail.com";
 
 export default function FooterSection() {
-  const [copied, setCopied] = useState(false);
-  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [mailCopied, setMailCopied] = useState(false);
+  const [mailTooltipOpen, setMailTooltipOpen] = useState(false);
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(email);
-      setCopied(true);
-      setTooltipOpen(true);
+  const handleMailCopy = async () => {
+    const success = await copyToClipboard(email);
+    if (success) {
+      setMailCopied(true);
+      setMailTooltipOpen(true);
       setTimeout(() => {
-        setCopied(false);
-        setTooltipOpen(false);
+        setMailCopied(false);
+        setMailTooltipOpen(false);
       }, 1500);
-    } catch (err) {
-      console.error("Failed to copy email", err);
     }
   };
 
   useEffect(() => {
     return () => {
-      setTooltipOpen(false);
+      setMailTooltipOpen(false);
     };
   }, []);
 
@@ -65,6 +66,7 @@ export default function FooterSection() {
               <li key={label}>
                 <Link
                   href={navItems.href[navItems.labels.indexOf(label)]}
+                  onClick={(e) => handleNavClick(e, navItems.href[navItems.labels.indexOf(label)])}
                   className="text-sm text-textColor hover:text-primary transition-colors duration-200"
                 >
                   {label}
@@ -124,30 +126,62 @@ export default function FooterSection() {
               </Tooltip>
             </Link>
 
-            <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
+            <Tooltip open={mailTooltipOpen} onOpenChange={setMailTooltipOpen}>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="p-0 hover:text-primary hover:scale-110 transition-all duration-300"
-                  aria-label="Copy email address"
+                <Link
+                  href="mailto:rvivek0310@gmail.com"
+                  aria-label="Send email"
                 >
-                  <Mail className="w-5 h-5" />
-                </button>
+                  <Mail className="w-5 h-5 hover:text-primary hover:scale-110 transition-all duration-300" />
+                </Link>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{copied ? "Copied" : email}</p>
+                <div className="flex items-center gap-2">
+                  <motion.p
+                    key={mailCopied ? "copied" : "email"}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="leading-normal"
+                  >
+                    {mailCopied ? "Copied" : email}
+                  </motion.p>
+                  <motion.button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleMailCopy();
+                    }}
+                    className="hover:text-primary transition-colors duration-200 shrink-0"
+                    aria-label="Copy email address"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <motion.div
+                      key={mailCopied ? "check" : "copy"}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {mailCopied ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </motion.div>
+                  </motion.button>
+                </div>
               </TooltipContent>
             </Tooltip>
           </div>
         </div>
       </div>
 
-      {/* <div className="mt-12 pt-6 border-t border-textColor/10">
+      <div className="mt-12 pt-6 border-t border-textColor/10">
         <p className="text-center text-xs text-muted-foreground">
           © {new Date().getFullYear()} Vivek. All rights reserved.
         </p>
-      </div> */}
+      </div>
     </motion.footer>
   );
 }

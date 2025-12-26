@@ -3,20 +3,40 @@
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { copyToClipboard } from "@/lib/utils";
 import MapPin from "@/public/assets/map-pin.svg";
 import GithubIcon from "@/public/assets/github-mark.svg";
 import LinkedInIcon from "@/public/assets/LinkedIn_icon.svg";
 import Mail from "@/public/assets/mail.svg";
 import Download from "@/public/assets/download.svg";
+import Copy from "@/public/assets/copy.svg";
+import Check from "@/public/assets/check.svg";
 
 const text = "Vivek";
+const email = "rvivek0310@gmail.com";
 
 export default function HeroSection() {
+  const [mailCopied, setMailCopied] = useState(false);
+  const [mailTooltipOpen, setMailTooltipOpen] = useState(false);
+
+  const handleMailCopy = async () => {
+    const success = await copyToClipboard(email);
+    if (success) {
+      setMailCopied(true);
+      setMailTooltipOpen(true);
+      setTimeout(() => {
+        setMailCopied(false);
+        setMailTooltipOpen(false);
+      }, 1500);
+    }
+  };
+
   return (
     <motion.section
       className="p-7 my-2 mx-5 flex flex-col items-center text-center md:flex md:flex-row md:justify-center md:items-center md:gap-3 md:my-25 md:p-4"
@@ -127,20 +147,54 @@ export default function HeroSection() {
             </Tooltip>
           </Link>
 
-          <Link
-            href="mailto:rvivek0310@gmail.com"
-            aria-label="Send email"
-            className="ml-4"
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
+          <Tooltip open={mailTooltipOpen} onOpenChange={setMailTooltipOpen}>
+            <TooltipTrigger asChild>
+              <Link
+                href="mailto:rvivek0310@gmail.com"
+                aria-label="Send email"
+                className="ml-4"
+              >
                 <Mail className="w-8 h-8 hover:text-primary hover:scale-110 ease-in-out duration-300" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Email Me</p>
-              </TooltipContent>
-            </Tooltip>
-          </Link>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="flex items-center gap-2">
+                <motion.p
+                  key={mailCopied ? "copied" : "email"}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="leading-normal"
+                >
+                  {mailCopied ? "Copied" : email}
+                </motion.p>
+                <motion.button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleMailCopy();
+                  }}
+                  className="hover:text-primary transition-colors duration-200 shrink-0"
+                  aria-label="Copy email address"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <motion.div
+                    key={mailCopied ? "check" : "copy"}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {mailCopied ? (
+                      <Check className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </motion.div>
+                </motion.button>
+              </div>
+            </TooltipContent>
+          </Tooltip>
 
           <a
             href="/resume.pdf"

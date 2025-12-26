@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import AnimatedLogo from "@/components/ui/animatedLogo";
 import { useState } from "react";
+import { handleNavClick } from "@/lib/utils";
 import GithubIcon from "@/public/assets/github-mark.svg";
 import LinkedInIcon from "@/public/assets/LinkedIn_icon.svg";
 import Mail from "@/public/assets/mail.svg";
@@ -37,6 +38,7 @@ export default function Navbar() {
           >
             <Link
               href={navItems.href[index]}
+              onClick={(e) => handleNavClick(e, navItems.href[index])}
               className="hover:text-primary hover:scale-110 hover:font-bold ease-in-out duration-300 cursor-pointer"
             >
               {label}
@@ -112,7 +114,10 @@ export default function Navbar() {
                   <Link
                     href={navItems.href[index]}
                     className="text-textColor hover:text-primary transition-colors duration-200 text-lg font-medium"
-                    onClick={() => setIsOpen(false)}
+                    onClick={(e) => {
+                      handleNavClick(e, navItems.href[index]);
+                      setIsOpen(false);
+                    }}
                   >
                     {label}
                   </Link>
