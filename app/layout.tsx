@@ -3,6 +3,7 @@ import { Source_Code_Pro } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/navbar";
 import ScrollToTop from "@/components/ui/scrollToTop";
+import { Analytics } from "@vercel/analytics/next";
 
 const sourceCodeProSans = Source_Code_Pro({
   variable: "--font-source_code_pro-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <ScrollToTop />
+        <Analytics />
       </body>
     </html>
   );
