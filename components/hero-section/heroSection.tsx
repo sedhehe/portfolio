@@ -91,7 +91,8 @@ export default function HeroSection() {
       {/* Intro Text Section */}
       <div className="mt-4 md:mt-0 md:text-left">
         <div>
-          <motion.h1 className="font-bold text-2xl">
+          <h1 className="sr-only">Vivek's Portfolio</h1>
+          <motion.h2 className="font-bold text-2xl">
             Hi, I am {/* Animated each letter of name */}
             {text.split("").map((char, i) => (
               <motion.span
@@ -103,7 +104,7 @@ export default function HeroSection() {
                 {char}
               </motion.span>
             ))}
-          </motion.h1>
+          </motion.h2>
           <motion.span
             className="h-0.5 bg-primary block ml-33"
             animate={{ width: [0, "4.5rem"] }}

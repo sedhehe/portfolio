@@ -10,7 +10,7 @@ export default function AboutSection() {
         animate={{ opacity: [0, 1] }}
         transition={{ duration: 1 }}
       >
-        <motion.h1 className="text-center font-bold text-3xl">
+        <motion.h2 className="text-center font-bold text-3xl">
           I am a{" "}
           <motion.span
             className="bg-clip-text text-transparent"
@@ -47,7 +47,7 @@ export default function AboutSection() {
             AI/ML/DL
           </motion.span>{" "}
           Engineer
-        </motion.h1>
+        </motion.h2>
       </motion.section>
   );
 }
