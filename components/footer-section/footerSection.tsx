@@ -16,7 +16,7 @@ import Mail from "@/public/assets/mail.svg";
 
 const navItems = {
   labels: ["home", "about", "skills", "experience", "projects"],
-  href: ["/", "#about", "#skills", "#experience", "#projects"],
+  href: ["#home", "#about", "#skills", "#experience", "#projects"],
 };
 
 const email = "rvivek0310@gmail.com";

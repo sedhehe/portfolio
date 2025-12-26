@@ -9,8 +9,8 @@ import LinkedInIcon from "@/public/assets/LinkedIn_icon.svg";
 import Mail from "@/public/assets/mail.svg";
 
 const navItems = {
-  labels: ["home", "about", "skills", "experience", "projects"],
-  href: ["/", "#about", "#skills", "#experience", "#projects"],
+  labels: ["about", "skills", "experience", "projects"],
+  href: ["#about", "#skills", "#experience", "#projects"],
 };
 
 export default function Navbar() {
