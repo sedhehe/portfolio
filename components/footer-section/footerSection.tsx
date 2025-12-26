@@ -81,7 +81,7 @@ export default function FooterSection() {
             Download
           </h3>
           <a
-            href="/resume.pdf"
+            href="/assets/resume.pdf"
             download
             className="text-sm text-textColor hover:text-primary transition-colors duration-200"
           >
@@ -139,8 +139,7 @@ export default function FooterSection() {
                 <div className="flex items-center gap-2">
                   <motion.p
                     key={mailCopied ? "copied" : "email"}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    animate={{ opacity: [0, 1] }}
                     transition={{ duration: 0.2 }}
                     className="leading-normal"
                   >
@@ -159,8 +158,7 @@ export default function FooterSection() {
                   >
                     <motion.div
                       key={mailCopied ? "check" : "copy"}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      animate={{ opacity: [0, 1], scale: [0.8, 1] }}
                       transition={{ duration: 0.2 }}
                     >
                       {mailCopied ? (

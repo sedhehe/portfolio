@@ -162,8 +162,7 @@ export default function HeroSection() {
               <div className="flex items-center gap-2">
                 <motion.p
                   key={mailCopied ? "copied" : "email"}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  animate={{ opacity: [0, 1] }}
                   transition={{ duration: 0.2 }}
                   className="leading-normal"
                 >
@@ -182,8 +181,7 @@ export default function HeroSection() {
                 >
                   <motion.div
                     key={mailCopied ? "check" : "copy"}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: [0, 1], scale: [0.8, 1] }}
                     transition={{ duration: 0.2 }}
                   >
                     {mailCopied ? (
@@ -198,7 +196,7 @@ export default function HeroSection() {
           </Tooltip>
 
           <a
-            href="/resume.pdf"
+            href="/assets/resume.pdf"
             download
             aria-label="Download resume"
             className="ml-4"
