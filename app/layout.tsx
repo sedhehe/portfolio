@@ -24,13 +24,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'sedhehe',
     description: "sedhehe's Portfolio Website",
-    url: 'https://sedhehe.vercel.app/',
+    url: 'https://sedhehe.vercel.app',
     siteName: 'sedhehe',
     images: [
       {
-        url: "/assets/profile.png",
+        url: "/assets/preview-img.png",
         width: 1200,
-        height: 630,
+        height: 1200,
         alt: 'My Website Open Graph Image',
       },
     ],
