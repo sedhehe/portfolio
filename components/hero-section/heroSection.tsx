@@ -61,7 +61,7 @@ export default function HeroSection() {
         </motion.svg>
         <Image
           priority
-          src="/profile.png"
+          src="/assets/profile.png"
           alt="Me"
           fill
           className="rounded-full object-cover p-2"
