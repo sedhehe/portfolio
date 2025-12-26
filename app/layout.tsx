@@ -21,6 +21,21 @@ const sourceCodeProMono = Source_Code_Pro({
 export const metadata: Metadata = {
   title: "sedhehe",
   description: "sedhehe's Portfolio Website",
+  openGraph: {
+    title: 'sedhehe',
+    description: "sedhehe's Portfolio Website",
+    url: 'https://sedhehe.vercel.app/',
+    siteName: 'sedhehe',
+    images: [
+      {
+        url: "/assets/profile.png",
+        width: 1200,
+        height: 630,
+        alt: 'My Website Open Graph Image',
+      },
+    ],
+    type: 'website',
+  },
   icons: {
     icon: [
       {
