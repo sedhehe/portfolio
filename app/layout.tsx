@@ -4,6 +4,7 @@ import { Source_Code_Pro } from "next/font/google";
 import Navbar from "@/components/ui/navbar";
 import ScrollToTop from "@/components/ui/scrollToTop";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <ScrollToTop />
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
