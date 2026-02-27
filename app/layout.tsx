@@ -1,12 +1,10 @@
-
 import type { Metadata } from "next";
 import { Source_Code_Pro } from "next/font/google";
 import Navbar from "@/components/ui/navbar";
 import ScrollToTop from "@/components/ui/scrollToTop";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
-
 
 const sourceCodeProSans = Source_Code_Pro({
   variable: "--font-source_code_pro-sans",
@@ -17,24 +15,24 @@ const sourceCodeProMono = Source_Code_Pro({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sedhehe.vercel.app"),
   title: "sedhehe",
   description: "sedhehe's Portfolio Website",
   openGraph: {
-    title: 'sedhehe',
+    title: "sedhehe",
     description: "sedhehe's Portfolio Website",
-    url: 'https://sedhehe.vercel.app',
-    siteName: 'sedhehe',
+    url: "https://sedhehe.vercel.app",
+    siteName: "sedhehe",
     images: [
       {
         url: "/assets/preview-img.png",
         width: 1200,
         height: 1200,
-        alt: 'My Website Open Graph Image',
+        alt: "My Website Open Graph Image",
       },
     ],
-    type: 'website',
+    type: "website",
   },
   icons: {
     icon: [
@@ -52,11 +50,16 @@ export const metadata: Metadata = {
   },
 };
 
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${sourceCodeProSans.variable} ${sourceCodeProMono.variable} antialiased`}>
+      <body
+        className={`${sourceCodeProSans.variable} ${sourceCodeProMono.variable} antialiased`}
+      >
         <Navbar />
         {children}
         <ScrollToTop />

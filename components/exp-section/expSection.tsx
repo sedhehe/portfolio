@@ -5,6 +5,35 @@ import { motion } from "motion/react";
 import ExpList, { ExpListProps } from "@/components/exp-section/explist";
 
 const expList: Record<string, ExpListProps> = {
+  current: {
+    role: "AI Solutions Engineer at Payintelli",
+    project: (
+      <div className="space-y-2">
+        <p className="text-sm">
+          <span className="text-primary">NextJs</span>,{" "}
+          <span className="text-primary">Python</span>,{" "}
+          <span className="text-primary">AWS</span>
+        </p>
+        <ul className="list-disc list-inside space-y-1 text-sm">
+          <li>
+            Develop and maintain a modern web application for a comprehensive
+            fintech platform, delivering features such as payments, analytics,
+            and user management.
+          </li>
+          <li>
+            Build responsive, user-friendly interfaces using React.js, ensuring
+            seamless user experiences across devices.
+          </li>
+          <li>
+            Integrate frontend components with AWS-powered backend services,
+            enabling secure data processing and real-time updates.
+          </li>
+        </ul>
+      </div>
+    ),
+    from: "June 2025",
+    to: "current",
+  },
   internship: {
     role: "Intern at PXP",
     project: (
