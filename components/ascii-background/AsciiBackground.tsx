@@ -165,6 +165,42 @@ export function AsciiBackground() {
     let textColor = "#ffffff";
     let isLightMode = false;
 
+    // Offscreen canvas glyph caching to optimize canvas drawing
+    const glyphCache = new Map<string, HTMLCanvasElement>();
+    const getGlyphCanvas = (char: string, color: string, font: string, size: number) => {
+      const key = `${char}_${color}_${font}_${size}`;
+      let cached = glyphCache.get(key);
+      if (!cached) {
+        cached = document.createElement("canvas");
+        const padding = Math.max(8, size * 0.5);
+        const dimension = Math.ceil(size * 2 + padding);
+        cached.width = dimension;
+        cached.height = dimension;
+        const oCtx = cached.getContext("2d");
+        if (oCtx) {
+          oCtx.font = font;
+          oCtx.fillStyle = color;
+          oCtx.textAlign = "center";
+          oCtx.textBaseline = "middle";
+          oCtx.fillText(char, dimension / 2, dimension / 2);
+        }
+        glyphCache.set(key, cached);
+      }
+      return cached;
+    };
+
+    let isAnimPaused = false;
+    const handleScroll = () => {
+      const scrolledPast = window.scrollY > window.innerHeight * 0.8;
+      if (scrolledPast !== isAnimPaused) {
+        isAnimPaused = scrolledPast;
+        if (!isAnimPaused) {
+          lastTime = Date.now();
+          animate();
+        }
+      }
+    };
+
     const updateColors = () => {
       const style = getComputedStyle(document.documentElement);
       const p = style.getPropertyValue("--primary").trim();
@@ -179,6 +215,8 @@ export function AsciiBackground() {
       if (s) secondaryColor = s;
       if (t) tertiaryColor = t;
       if (txt) textColor = txt;
+
+      glyphCache.clear();
     };
 
     const getSlashOffset = (px: number, py: number) => {
@@ -205,7 +243,7 @@ export function AsciiBackground() {
 
     const buildTree = (x: number, y: number, length: number, angle: number, depth: number, maxDepth: number, branchWidth: number) => {
       if (depth > maxDepth) return;
-      const stepSize = 12;
+      const stepSize = 16; // Optimized step size from 12
       const steps = Math.floor(length / stepSize);
       for (let i = 0; i < steps; i++) {
         const bx = x + Math.cos(angle) * (i * stepSize);
@@ -238,10 +276,10 @@ export function AsciiBackground() {
         const isEnd = depth === maxDepth;
         const isMobile = canvas.width < 768;
         
-        // Scale leaf count down on mobile to avoid lag and squishing
+        // Scale leaf count down on mobile and desktop to avoid lag and squishing
         const numLeaves = isEnd 
-          ? (isMobile ? 35 : 80) 
-          : (depth === 0 ? (isMobile ? 20 : 40) : (isMobile ? 15 : 30));
+          ? (isMobile ? 25 : 50) 
+          : (depth === 0 ? (isMobile ? 15 : 30) : (isMobile ? 10 : 20));
         const spread = isEnd ? (isMobile ? 35 : 60) : (isMobile ? 15 : 30);
         
         for (let i = 0; i < numLeaves; i++) {
@@ -304,6 +342,7 @@ export function AsciiBackground() {
       fallingPetals = [];
       coins = [];
       floatTexts = [];
+      glyphCache.clear();
 
       const isMobile = canvas.width < 768;
       const startX = -20;
@@ -324,6 +363,8 @@ export function AsciiBackground() {
     let dragTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const animate = () => {
+      if (isAnimPaused) return;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const time = Date.now() - startTime;
       const dt = time - (lastTime - startTime);
@@ -402,9 +443,8 @@ export function AsciiBackground() {
 
       // Draw Branches
       ctx.globalAlpha = isDomainExpansion ? 0.8 : (isLightMode ? 0.75 : 0.35); // Flash solid during domain; increase opacity in light mode for visibility
-      ctx.font = "12px monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      const branchColor = isDomainExpansion ? "#ffffff" : tertiaryColor;
+      const branchFont = "12px monospace";
       branches.forEach(b => {
         const swayX = Math.sin(time * 0.001 + b.depth) * b.depth * 0.5;
         const swayY = Math.cos(time * 0.001 + b.depth) * b.depth * 0.2;
@@ -413,16 +453,13 @@ export function AsciiBackground() {
         const by = b.baseY + swayY;
         const offset = getSlashOffset(bx, by);
 
-        // Invert colors during domain expansion
-        ctx.fillStyle = isDomainExpansion ? "#ffffff" : b.color;
-        ctx.fillText(b.char, bx + offset.x, by + offset.y);
+        const glyph = getGlyphCanvas(b.char, branchColor, branchFont, 12);
+        ctx.drawImage(glyph, bx + offset.x - glyph.width / 2, by + offset.y - glyph.height / 2);
       });
 
       // Draw Canopy
       ctx.globalAlpha = isDomainExpansion ? 0.9 : (isLightMode ? 0.85 : 0.55); // increase opacity in light mode for leaf visibility
-      ctx.font = 'bold 14px "Source Code Pro", monospace';
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      const canopyFont = 'bold 14px "Source Code Pro", monospace';
       canopy.forEach((c, idx) => {
         const flutterX = Math.sin(time * 0.002 + c.phase) * 2;
         const flutterY = Math.cos(time * 0.0015 + c.phase) * 2;
@@ -450,8 +487,9 @@ export function AsciiBackground() {
           ? KATAKANA[(Math.floor(time / 150) + idx) % KATAKANA.length]
           : c.char;
 
-        ctx.fillStyle = isDomainExpansion ? "#ff0044" : c.color;
-        ctx.fillText(displayChar, drawX + offset.x, drawY + offset.y);
+        const leafColor = isDomainExpansion ? "#ff0044" : c.color;
+        const glyph = getGlyphCanvas(displayChar, leafColor, canopyFont, c.size);
+        ctx.drawImage(glyph, drawX + offset.x - glyph.width / 2, drawY + offset.y - glyph.height / 2);
       });
 
       // Draw Slash Line Cut
@@ -506,21 +544,22 @@ export function AsciiBackground() {
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rotation);
 
-        // Shiny glow logic with shadow cleanup
+        const roundedScale = Math.round(p.scale * 10) / 10;
+        const petalSize = Math.round(16 * roundedScale);
+        const petalFont = `bold ${petalSize}px "Source Code Pro", monospace`;
+        const petalColor = p.isShiny ? "#FFD700" : (isDomainExpansion ? "#ff0044" : p.color);
+
+        // Canvas shadow is slow, so we only apply it for rare shiny petals
         if (p.isShiny) {
-          ctx.fillStyle = "#FFD700"; // Golden shiny color
           ctx.shadowBlur = 10;
           ctx.shadowColor = "#FFD700";
         } else {
-          ctx.fillStyle = isDomainExpansion ? "#ff0044" : p.color;
           ctx.shadowBlur = 0;
           ctx.shadowColor = "transparent";
         }
 
-        ctx.font = `bold ${16 * p.scale}px "Source Code Pro", monospace`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(p.char, 0, 0);
+        const glyph = getGlyphCanvas(p.char, petalColor, petalFont, petalSize);
+        ctx.drawImage(glyph, -glyph.width / 2, -glyph.height / 2);
         ctx.restore();
 
         if (p.y > canvas.height + 50 || p.x > canvas.width + 50) {
@@ -529,17 +568,17 @@ export function AsciiBackground() {
       }
 
       // Update & Draw Coins
-      ctx.globalAlpha = 1.0;
       for (let i = coins.length - 1; i >= 0; i--) {
         const c = coins[i];
         c.update(canvas.height);
 
-        ctx.fillStyle = `rgba(255, 215, 0, ${c.life})`; // Gold fading
-        ctx.font = `bold 18px monospace`;
-        ctx.fillText(c.char, c.x, c.y);
+        ctx.globalAlpha = Math.max(0, Math.min(1, c.life));
+        const glyph = getGlyphCanvas(c.char, "#FFD700", "bold 18px monospace", 18);
+        ctx.drawImage(glyph, c.x - glyph.width / 2, c.y - glyph.height / 2);
 
         if (c.life <= 0) coins.splice(i, 1);
       }
+      ctx.globalAlpha = 1.0;
 
       // Update & Draw Manga Text
       for (let i = floatTexts.length - 1; i >= 0; i--) {
@@ -758,6 +797,7 @@ export function AsciiBackground() {
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('click', handleMouseClick);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -772,6 +812,7 @@ export function AsciiBackground() {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('click', handleMouseClick);
+      window.removeEventListener('scroll', handleScroll);
       
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
@@ -794,6 +835,7 @@ export function AsciiBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none -z-10 opacity-90"
+      style={{ willChange: "transform", transform: "translate3d(0, 0, 0)" }}
     />
   );
 }
