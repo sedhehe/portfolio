@@ -10,7 +10,7 @@ export default function AboutSection() {
         animate={{ opacity: [0, 1] }}
         transition={{ duration: 1 }}
       >
-        <motion.h2 className="text-center font-bold text-3xl">
+        <motion.h2 className="text-center font-bold text-3xl bg-foreground/10 backdrop-blur-2xl p-8 rounded-3xl max-w-4xl w-fit mx-auto">
           I am a{" "}
           <motion.span
             className="bg-clip-text text-transparent"

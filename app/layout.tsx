@@ -4,6 +4,7 @@ import Navbar from "@/components/ui/navbar";
 import ScrollToTop from "@/components/ui/scrollToTop";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AsciiBackground } from "@/components/ascii-background/AsciiBackground";
 import "./globals.css";
 
 const sourceCodeProSans = Source_Code_Pro({
@@ -60,6 +61,7 @@ export default function RootLayout({
       <body
         className={`${sourceCodeProSans.variable} ${sourceCodeProMono.variable} antialiased`}
       >
+        <AsciiBackground />
         <Navbar />
         {children}
         <ScrollToTop />
