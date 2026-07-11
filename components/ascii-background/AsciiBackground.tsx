@@ -108,11 +108,11 @@ class FallingPetal {
     this.char = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
     this.color = Math.random() > 0.5 ? color1 : color2;
     this.phase = Math.random() * Math.PI * 2;
-    this.speedY = Math.random() * 0.5 + 0.2;
-    this.speedX = Math.random() * 2.0 + 1.5;
+    this.speedY = Math.random() * 0.2 + 0.1; // Slowed down from 0.5 + 0.2
+    this.speedX = Math.random() * 0.8 + 0.4; // Slowed down from 2.0 + 1.5
     this.scale = Math.random() * 0.8 + 0.8;
     this.rotation = Math.random() * Math.PI * 2;
-    this.rotSpeed = (Math.random() - 0.5) * 0.05;
+    this.rotSpeed = (Math.random() - 0.5) * 0.02; // Slower rotation from 0.05
 
     // 2% chance to be a rare "Loot Drop" shiny petal
     this.isShiny = Math.random() < 0.02;
@@ -120,8 +120,8 @@ class FallingPetal {
 
   update(time: number, globalWind: number) {
     // If Domain Expansion is active, wind is 0, freeze movement mostly
-    this.x += this.speedX * (globalWind > 0 ? 1 : 0) + globalWind + Math.sin(time * 0.001 + this.phase) * 2.5;
-    this.y += this.speedY * (globalWind > 0 ? 1 : 0.1) + Math.cos(time * 0.002 + this.phase) * 1.5;
+    this.x += this.speedX * (globalWind > 0 ? 1 : 0) + globalWind + Math.sin(time * 0.001 + this.phase) * 1.2; // Sway reduced from 2.5
+    this.y += this.speedY * (globalWind > 0 ? 1 : 0.1) + Math.cos(time * 0.002 + this.phase) * 0.8; // Sway reduced from 1.5
     this.rotation += this.rotSpeed;
   }
 }
@@ -187,18 +187,6 @@ export function AsciiBackground() {
         glyphCache.set(key, cached);
       }
       return cached;
-    };
-
-    let isAnimPaused = false;
-    const handleScroll = () => {
-      const scrolledPast = window.scrollY > window.innerHeight * 0.8;
-      if (scrolledPast !== isAnimPaused) {
-        isAnimPaused = scrolledPast;
-        if (!isAnimPaused) {
-          lastTime = Date.now();
-          animate();
-        }
-      }
     };
 
     const updateColors = () => {
@@ -363,8 +351,6 @@ export function AsciiBackground() {
     let dragTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const animate = () => {
-      if (isAnimPaused) return;
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const time = Date.now() - startTime;
       const dt = time - (lastTime - startTime);
@@ -378,8 +364,8 @@ export function AsciiBackground() {
         }
       }
 
-      // Physics Variables
-      let globalWind = Math.sin(time * 0.0002) * 2.0 + 2.0;
+      // Physics Variables (Slowed down leaf wind sweep)
+      let globalWind = Math.sin(time * 0.0002) * 0.5 + 0.5; // Reduced from 2.0 + 2.0
 
       if (isDomainExpansion) {
         globalWind = 0; // Wind freezes
@@ -797,7 +783,6 @@ export function AsciiBackground() {
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('click', handleMouseClick);
-    window.addEventListener('scroll', handleScroll, { passive: true });
     
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -812,7 +797,6 @@ export function AsciiBackground() {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('click', handleMouseClick);
-      window.removeEventListener('scroll', handleScroll);
       
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
