@@ -35,7 +35,9 @@ export default function ProjectsSection() {
     <motion.section
       className="my-10 p-4"
       id="projects"
-      whileInView={{ opacity: [0, 1] }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 1 }}
     >
       <motion.h2 className="text-3xl font-bold text-center mb-10">

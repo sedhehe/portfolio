@@ -20,7 +20,9 @@ export default function ExpList(props: ExpListProps) {
   return (
     <motion.div
       className="relative mb-8"
-      whileInView={{ opacity: [0, 1] }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{
         duration: 0.5,
         ease: "easeInOut",
@@ -48,7 +50,9 @@ export default function ExpList(props: ExpListProps) {
               bottom: 0,
               transformOrigin: "left",
             }}
-            whileInView={{ scaleX: [0, 1] }}
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
           />
         </div>

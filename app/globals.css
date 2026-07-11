@@ -145,3 +145,27 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Domain Expansion Image Color Shift & Transitions */
+img {
+  filter: var(--image-filter, none);
+  transition: filter 0.8s cubic-bezier(0.15, 0.85, 0.35, 1), transform 0.5s ease-out;
+}
+
+/* Premium zoom on hover for project images */
+.relative:hover img {
+  transform: scale(1.04);
+}
+
+/* Ensure SVG gradients respond dynamically to CSS variable updates */
+stop {
+  transition: stop-color 0.8s cubic-bezier(0.15, 0.85, 0.35, 1);
+}
+
+#circleGradient stop:first-of-type {
+  stop-color: var(--primary) !important;
+}
+
+#circleGradient stop:last-of-type {
+  stop-color: var(--secondary) !important;
+}

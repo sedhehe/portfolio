@@ -128,13 +128,15 @@ export default function ExpSection() {
       <motion.section
         className="my-10 p-4"
         id="experience"
-        whileInView={{ opacity: [0, 1] }}
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
         transition={{ duration: 1 }}
       >
         <motion.h2 className="text-3xl font-bold text-center mb-1 ">
           experience
         </motion.h2>
-        <div className="mx-auto md:max-w-7xl bg-foreground/10 backdrop-blur-2xl p-8 rounded-3xl">
+        <div className="mx-auto md:max-w-7xl bg-foreground/10 backdrop-blur-md transform-gpu p-8 rounded-3xl">
           {Object.entries(expList).map(([key, exp]) => (
             <ExpList
               role={exp.role}

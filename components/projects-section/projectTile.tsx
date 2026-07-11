@@ -75,24 +75,27 @@ export default function ProjectTile(props: ProjectTileProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      whileInView={{ opacity: [0, 1] }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="relative overflow-hidden h-auto w-full bg-foreground/10 backdrop-blur-2xl rounded-2xl flex flex-col md:flex-row cursor-pointer mt-4"
+      className="relative overflow-hidden h-auto w-full bg-foreground/10 backdrop-blur-md transform-gpu rounded-2xl flex flex-col md:flex-row cursor-pointer mt-4"
     >
       <FollowingBall x={x} y={y} opacity={opacity} scale={scale} />
 
       {/* image div */}
-      <div className="relative w-full md:w-1/4 h-48 md:h-auto shrink-0">
+      <div className="relative z-10 w-full md:w-1/4 h-48 md:h-auto shrink-0 overflow-hidden">
         <Image
           src={props.source}
           alt="project image"
           fill
-          className="object-cover rounded-t-2xl md:rounded-t-none md:rounded-l-2xl"
+          className="object-cover rounded-t-2xl md:rounded-t-none md:rounded-l-2xl transition-all duration-700 ease-in-out hover:scale-105"
+          style={{ filter: "var(--image-filter, none)" }}
         />
       </div>
 
       {/* content div */}
-      <div className="ml-0 md:ml-5 p-4 md:p-0 flex flex-col flex-1">
+      <div className="relative z-10 ml-0 md:ml-5 p-4 md:p-0 flex flex-col flex-1">
         <h2 className="text-lg md:text-xl font-bold mt-4 md:mt-4">
           {props.title}
         </h2>

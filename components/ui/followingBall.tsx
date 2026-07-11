@@ -19,7 +19,7 @@ export default function FollowingBall({
 }: FollowingBallProps) {
   return (  
     <motion.div
-      className="pointer-events-none absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl -z-10 bg-seconwdary/30 dark:bg-primary/30"
+      className="pointer-events-none absolute top-0 left-0 w-64 h-64 rounded-full blur-3xl z-0 bg-secondary/30 dark:bg-primary/30"
       style={{
         opacity,
         scale,

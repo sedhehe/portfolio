@@ -26,7 +26,7 @@ export default function SkillsGrid({
       <motion.svg className="absolute inset-0 z-1 h-full w-full" aria-hidden>
         <defs>
           <linearGradient
-            id={`skill-gradient`}
+            id={`skill-gradient-${name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
             x1="100%"
             y1="100%"
             x2="0%"
@@ -44,7 +44,7 @@ export default function SkillsGrid({
           rx="15"
           ry="15" /* match rounded-2xl + the outward inset */
           fill="none"
-          stroke={`url(#skill-gradient)`}
+          stroke={`url(#skill-gradient-${name.toLowerCase().replace(/[^a-z0-9]/g, "-")})`}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"

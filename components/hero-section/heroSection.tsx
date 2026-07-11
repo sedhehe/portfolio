@@ -85,6 +85,7 @@ export default function HeroSection() {
           alt="Me"
           fill
           className="rounded-full object-cover p-2"
+          style={{ filter: "none" }}
         />
       </motion.div>
 
@@ -106,7 +107,7 @@ export default function HeroSection() {
             ))}
           </motion.h2>
           <motion.span
-            className="h-0.5 bg-primary block ml-33"
+            className="h-0.5 bg-primary block md:ml-33 mx-auto"
             animate={{ width: [0, "4.5rem"] }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
           />

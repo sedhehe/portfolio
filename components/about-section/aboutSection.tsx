@@ -10,13 +10,13 @@ export default function AboutSection() {
         animate={{ opacity: [0, 1] }}
         transition={{ duration: 1 }}
       >
-        <motion.h2 className="text-center font-bold text-3xl bg-foreground/10 backdrop-blur-2xl p-8 rounded-3xl max-w-4xl w-fit mx-auto">
+        <motion.h2 className="text-center font-bold text-3xl bg-foreground/10 backdrop-blur-md transform-gpu p-8 rounded-3xl max-w-4xl w-fit mx-auto">
           I am a{" "}
           <motion.span
             className="bg-clip-text text-transparent"
             style={{
               backgroundImage:
-                "linear-gradient(to right, #036799 0%, #05acff 50%, #036799 100%)",
+                "linear-gradient(to right, var(--secondary) 0%, var(--primary) 50%, var(--secondary) 100%)",
               backgroundSize: "200% 100%",
             }}
             animate={{ backgroundPosition: ["0% center", "200% center"] }}
@@ -33,7 +33,7 @@ export default function AboutSection() {
             className="bg-clip-text text-transparent"
             style={{
               backgroundImage:
-                "linear-gradient(to right, #05acff 0%, #036799 50%, #05acff 100%)",
+                "linear-gradient(to right, var(--primary) 0%, var(--secondary) 50%, var(--primary) 100%)",
               backgroundSize: "200% 100%",
             }}
             animate={{ backgroundPosition: ["0% center", "200% center"] }}

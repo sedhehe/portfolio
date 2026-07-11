@@ -63,13 +63,15 @@ export default function SkillsSection() {
     <motion.section
       className="my-10 p-4"
       id="skills"
-      whileInView={{ opacity: [0, 1] }}
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 1 }}
     >
       <motion.h2 className="text-3xl font-bold text-center mb-10">
         skills
       </motion.h2>
-      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-2 md:grid-cols-4 md:grid-rows-2 md:gap-6 md:max-w-5xl bg-foreground/10 backdrop-blur-2xl p-8 rounded-3xl">
+      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-2 md:grid-cols-4 md:grid-rows-2 md:gap-6 md:max-w-5xl bg-foreground/10 backdrop-blur-md transform-gpu p-8 rounded-3xl">
         {Object.entries(skillsData).map(([key, skill]) => (
           <SkillsGrid
             key={key}

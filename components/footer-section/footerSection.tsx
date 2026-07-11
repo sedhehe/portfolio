@@ -48,8 +48,10 @@ export default function FooterSection() {
 
   return (
     <motion.footer
-      className="mt-16 border-t border-textColor/20 py-12 px-6 sm:px-10"
-      whileInView={{ opacity: [0, 1] }}
+      className="mt-16 border-t border-textColor/20 py-12 px-6 sm:px-10 bg-foreground/10 backdrop-blur-md transform-gpu rounded-t-2xl"
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.8, ease: "easeInOut" }}
     >
       <div className="w-full grid gap-12 md:gap-16 grid-cols-1 md:grid-cols-4 md:items-start">
