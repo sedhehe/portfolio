@@ -1,83 +1,103 @@
 "use client";
 
 import { motion } from "motion/react";
-
 import SkillsGrid, {
   SkillsGridProps,
 } from "@/components/skills-section/skillsGrid";
 
-import React from "@/public/assets/react.svg";
-import Nextjs from "@/public/assets/nextjs.svg";
-import TypeScript from "@/public/assets/typescript.svg";
-import JavaScript from "@/public/assets/javascript.svg";
-import Python from "@/public/assets/python.svg";
-import Pytorch from "@/public/assets/pytorch.svg";
-import Aws from "@/public/assets/aws.svg";
-import Git from "@/public/assets/git.svg";
+import { scrollToSection } from "@/lib/utils";
+
+import ReactIcon from "@/public/assets/react.svg";
+import NextjsIcon from "@/public/assets/nextjs.svg";
+import TypeScriptIcon from "@/public/assets/typescript.svg";
+import JavaScriptIcon from "@/public/assets/javascript.svg";
+import PythonIcon from "@/public/assets/python.svg";
+import PytorchIcon from "@/public/assets/pytorch.svg";
+import AwsIcon from "@/public/assets/aws.svg";
+import GitIcon from "@/public/assets/git.svg";
 
 const skillsData: Record<string, SkillsGridProps> = {
-  react: {
-    icon: <React className="w-8 h-8 md:w-12 md:h-12" />,
-    name: "React.js",
-    technology: "Front-end",
+  pytorch: {
+    icon: <PytorchIcon className="w-8 h-8 md:w-10 md:h-10" />,
+    name: "PyTorch",
+    technology: "Deep Learning & RL",
   },
   nextjs: {
-    icon: <Nextjs className="w-8 h-8 md:w-12 md:h-12" />,
+    icon: <NextjsIcon className="w-8 h-8 md:w-10 md:h-10" />,
     name: "Next.js",
-    technology: "Full-stack",
+    technology: "Full-Stack & SSR",
   },
   typescript: {
-    icon: <TypeScript className="w-8 h-8 md:w-12 md:h-12" />,
+    icon: <TypeScriptIcon className="w-8 h-8 md:w-10 md:h-10" />,
     name: "TypeScript",
-    technology: "Programming Language",
-  },
-  javascript: {
-    icon: <JavaScript className="w-8 h-8 md:w-12 md:h-12" />,
-    name: "JavaScript",
-    technology: "Programming Language",
+    technology: "Type Systems & Architecture",
   },
   python: {
-    icon: <Python className="w-8 h-8 md:w-12 md:h-12" />,
+    icon: <PythonIcon className="w-8 h-8 md:w-10 md:h-10" />,
     name: "Python",
-    technology: "Programming Language",
+    technology: "Async APIs & ML Pipelines",
   },
-  pytorch: {
-    icon: <Pytorch className="w-8 h-8 md:w-12 md:h-12" />,
-    name: "Pytorch",
-    technology: "AI/ML/DL Framework",
+  react: {
+    icon: <ReactIcon className="w-8 h-8 md:w-10 md:h-10" />,
+    name: "React.js",
+    technology: "Interactive Dashboards",
   },
   aws: {
-    icon: <Aws className="w-8 h-8 md:w-12 md:h-12" />,
+    icon: <AwsIcon className="w-8 h-8 md:w-10 md:h-10" />,
     name: "AWS",
-    technology: "Cloud Platform",
+    technology: "Cloud & Microservices",
+  },
+  javascript: {
+    icon: <JavaScriptIcon className="w-8 h-8 md:w-10 md:h-10" />,
+    name: "JavaScript",
+    technology: "Web Technologies & Tooling",
   },
   git: {
-    icon: <Git className="w-8 h-8 md:w-12 md:h-12" />,
+    icon: <GitIcon className="w-8 h-8 md:w-10 md:h-10" />,
     name: "Git",
-    technology: "Version Control",
+    technology: "Version Control & CI/CD",
   },
 };
 
 export default function SkillsSection() {
+  const handleSkillClick = (skillKey: string) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("skill-clicked-to-projects", {
+          detail: { skill: skillKey },
+        })
+      );
+    }
+    scrollToSection("#projects");
+  };
+
   return (
     <motion.section
-      className="my-10 p-4"
+      className="my-10 p-4 relative z-10 max-w-6xl mx-auto"
       id="skills"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 1 }}
     >
-      <motion.h2 className="text-3xl font-bold text-center mb-10">
-        skills
-      </motion.h2>
-      <div className="mx-auto grid grid-cols-1 max-w-6xl gap-2 md:grid-cols-4 md:grid-rows-2 md:gap-6 md:max-w-5xl bg-foreground/10 backdrop-blur-md transform-gpu p-8 rounded-3xl">
+      {/* Design language header matching other sections */}
+      <div className="space-y-2 mb-10 text-center sm:text-left">
+        <p className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
+          {"// 02. Technical Competencies"}
+        </p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-textColor">
+          Skills &amp; Technologies
+        </h2>
+      </div>
+
+      <div className="mx-auto grid grid-cols-1 gap-3 md:grid-cols-4 md:grid-rows-2 md:gap-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 transform-gpu p-8 rounded-3xl shadow-xl">
         {Object.entries(skillsData).map(([key, skill]) => (
           <SkillsGrid
             key={key}
             icon={skill.icon}
             name={skill.name}
             technology={skill.technology}
+            onClick={() => handleSkillClick(key)}
           />
         ))}
       </div>

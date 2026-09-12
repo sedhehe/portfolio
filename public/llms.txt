@@ -1,0 +1,33 @@
+# Vivek Rallapally
+
+> Software engineer crafting intelligent systems, applied machine learning models, and high-performance web applications.
+
+- Website: https://sedhehe.vercel.app
+- GitHub: https://github.com/sedhehe
+- LinkedIn: https://www.linkedin.com/in/vivek0310
+- Email: rvivek0310@gmail.com
+- Location: Hyderabad, India
+
+## Summary
+Full-stack and machine learning engineer with hands-on experience building end-to-end systems using Next.js, React, TypeScript, FastAPI, Python, and PyTorch. Comfortable owning both frontend and backend—from neural network formulation and async task processing to real-time WebSocket communication and production UI design.
+
+## Core Capabilities
+- **Deep Learning & RL**: PyTorch, GBML-DQN, YOLOv11 Computer Vision, Custom Feedforward Architectures, Fraud Detection.
+- **Autonomous Agents**: Local LLM Orchestration (Qwen3 via Ollama), Tool Calling & Chaining, OS-Level Automation.
+- **Real-Time & Distributed Systems**: WebSockets, Async Task Processing (Redis & Celery), Python FastAPI Microservices.
+- **Modern Full-Stack**: Next.js (App Router, SSR), React 19, TypeScript, Tailwind CSS, GPU Motion & Canvas Shaders.
+- **Cloud & DevOps**: AWS (EC2, S3), Docker Containerization, Git & CI/CD Pipelines.
+
+## Featured Engineering Projects
+- **Smart Traffic Management System Using YOLOv11 and GBML DQN**: Trained a Deep-Q-Network agent using YOLOv11 computer vision in SUMO simulation, reducing average queue length by ~36% across 600 episodes.
+  - Repo: https://github.com/sedhehe/Smart_Traffic_Management_System_Using_YOLOv11_and_GBML_DQN
+- **SED (System Execution Dashboard)**: Built a local AI-powered laptop automation agent using Python, FastAPI, Next.js, and TypeScript with real-time WebSocket communication, local LLM tool chaining (Qwen3 via Ollama), and Celery/Redis async task queues.
+- **PXP-FraudNet**: Architected a 3-layer neural network for payment transaction fraud detection (94% accuracy, <1% FPR), coupled with a real-time React visualization dashboard.
+- **XTree**: Developed a Chrome extension in JavaScript for automated webpage scraping and CSV export, cutting manual data collection time from 10 minutes to under 5 seconds.
+  - Repo: https://github.com/sedhehe/XTree
+
+## Experience Highlights
+- **PiResearch Labs** (June 2025 – Present): AI Solutions Engineer building and maintaining production dashboards (app.payintelli.com), marketing pages for 4 fintech products, and cross-functional model telemetry interfaces.
+- **PXP** (February 2025 – May 2025): Machine Learning & Full-Stack Intern; built end-to-end payment fraud detection model in PyTorch on 10,000+ records and real-time React visualization dashboard.
+- **Google AIML | EduSkills AICTE Cohort-8** (April 2024 – June 2024): Virtual Intern; trained and evaluated 5-class image classification CNN (>90% accuracy) and YOLOv5 object detection model.
+- **MLRIT CIE** (July 2022 – October 2023): Member; shipped frontend features for portal (500+ users), mentored 100+ students, and coordinated technical symposiums.

@@ -19,19 +19,19 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="p-6 flex w-full items-center justify-between relative"
+      className="p-6 flex w-full items-center justify-between relative z-30"
       animate={{ opacity: [0, 1] }}
       transition={{ duration: 0.5 }}
     >
       <div className="flex justify-start">
-        <Link href="/">
+        <Link href="/" aria-label="Go to home">
           <AnimatedLogo />
         </Link>
       </div>
 
-      <div className="hidden sm:flex gap-7">
+      <div className="hidden sm:flex gap-7 items-center">
         {navItems.labels.map((label, index) => (
-          <motion.p
+          <motion.div
             key={label}
             animate={{ opacity: [0, 1], y: [-20, 0] }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -39,22 +39,22 @@ export default function Navbar() {
             <Link
               href={navItems.href[index]}
               onClick={(e) => handleNavClick(e, navItems.href[index])}
-              className="hover:text-primary hover:scale-110 hover:font-bold ease-in-out duration-300 cursor-pointer"
+              className="text-sm font-mono text-textColor hover:text-primary hover:scale-110 ease-in-out duration-300 cursor-pointer"
             >
               {label}
             </Link>
-          </motion.p>
+          </motion.div>
         ))}
       </div>
 
       {/* Mobile hamburger button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="sm:hidden flex flex-col gap-1.5 cursor-pointer"
+        className="sm:hidden flex flex-col gap-1.5 cursor-pointer p-2"
         aria-label="Toggle menu"
       >
         <motion.span
-          animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 10 : 0 }}
+          animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 8 : 0 }}
           className="w-6 h-0.5 bg-textColor block"
         />
         <motion.span
@@ -62,7 +62,7 @@ export default function Navbar() {
           className="w-6 h-0.5 bg-textColor block"
         />
         <motion.span
-          animate={{ rotate: isOpen ? -45 : 0, y: isOpen ? -10 : 0 }}
+          animate={{ rotate: isOpen ? -45 : 0, y: isOpen ? -8 : 0 }}
           className="w-6 h-0.5 bg-textColor block"
         />
       </motion.button>
@@ -75,16 +75,15 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-0 left-0 right-0 bottom-0 bg-background z-40 sm:hidden flex flex-col p-6"
+            className="fixed inset-0 bg-background/95 backdrop-blur-xl z-50 sm:hidden flex flex-col p-6"
           >
-
             <div className="flex justify-between items-center mb-8">
-              <Link href="/">
+              <Link href="/" onClick={() => setIsOpen(false)}>
                 <AnimatedLogo />
               </Link>
               <motion.button
                 onClick={() => setIsOpen(false)}
-                className="flex flex-col gap-1.5 cursor-pointer justify-center"
+                className="flex flex-col gap-1.5 cursor-pointer justify-center p-2"
                 aria-label="Close menu"
               >
                 <motion.span
@@ -125,7 +124,7 @@ export default function Navbar() {
               ))}
             </div>
 
-            <div className="flex gap-6 mt-auto">
+            <div className="flex gap-6 mt-auto pt-6 border-t border-textColor/10">
               <Link
                 href="https://github.com/sedhehe"
                 target="_blank"

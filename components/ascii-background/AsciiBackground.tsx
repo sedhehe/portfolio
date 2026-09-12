@@ -102,11 +102,15 @@ class FallingPetal {
   rotSpeed: number;
   isShiny: boolean;
 
-  constructor(startX: number, startY: number, color1: string, color2: string) {
+  constructor(startX: number, startY: number, color1: string, color2: string, isLightMode = false) {
     this.x = startX;
     this.y = startY;
     this.char = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
-    this.color = Math.random() > 0.5 ? color1 : color2;
+    if (this.char === "✿" || this.char === "❀" || this.char === "🌸") {
+      this.color = isLightMode ? "#e11d48" : "#f472b6"; // Luminous cherry blossom petal
+    } else {
+      this.color = Math.random() > 0.5 ? color1 : color2;
+    }
     this.phase = Math.random() * Math.PI * 2;
     this.speedY = Math.random() * 0.2 + 0.1; // Slowed down from 0.5 + 0.2
     this.speedX = Math.random() * 0.8 + 0.4; // Slowed down from 2.0 + 1.5
@@ -150,8 +154,7 @@ export function AsciiBackground() {
       p2: { x: number; y: number } | null;
       progress: number;
       maxLife: number;
-    } = { active: false, p1: null, p2: null, progress: 0, maxLife: 25 };
-    let flashTime = 0;
+    } = { active: false, p1: null, p2: null, progress: 0, maxLife: 16 };
 
     let mouseX = -1000;
     let mouseY = -1000;
@@ -197,12 +200,19 @@ export function AsciiBackground() {
       const txt = style.getPropertyValue("--textColor").trim();
       const bg = style.getPropertyValue("--background").trim();
 
-      isLightMode = bg === "#fff" || bg === "#ffffff" || bg.includes("255, 255, 255") || txt === "#121212";
+      isLightMode = bg === "#fff" || bg === "#ffffff" || bg.includes("255, 255, 255") || txt === "#121212" || window.matchMedia("(prefers-color-scheme: light)").matches;
 
-      if (p) primaryColor = p;
-      if (s) secondaryColor = s;
-      if (t) tertiaryColor = t;
-      if (txt) textColor = txt;
+      if (isLightMode) {
+        primaryColor = p || "#0284c7";
+        secondaryColor = "#0284c7"; // high-contrast vibrant cerulean in light mode
+        tertiaryColor = t || "#036799";
+        textColor = txt || "#121212";
+      } else {
+        if (p) primaryColor = p;
+        if (s) secondaryColor = s;
+        if (t) tertiaryColor = t;
+        if (txt) textColor = txt;
+      }
 
       glyphCache.clear();
     };
@@ -220,7 +230,7 @@ export function AsciiBackground() {
       const ny = dx / len;
 
       const lifeRatio = slashEffect.progress / slashEffect.maxLife;
-      const displacement = Math.sin(lifeRatio * Math.PI) * 45; // 45px peak visual shear displacement
+      const displacement = Math.sin(lifeRatio * Math.PI) * 18 * (1 - lifeRatio); // Smooth, snappy return without lingering
 
       const side = cross >= 0 ? 1 : -1;
       return {
@@ -346,15 +356,14 @@ export function AsciiBackground() {
       buildTree(startX, startY + 20, initialLength * 0.5, 0.15, 0, isMobile ? 2 : 3, initialWidth * 0.7);
     };
 
-    let startTime = Date.now();
-    let lastTime = startTime;
-    let dragTimeout: ReturnType<typeof setTimeout> | null = null;
+    const startTime = Date.now();
+    let isPointerDown = false;
+    let startPointerX = 0;
+    let startPointerY = 0;
 
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const time = Date.now() - startTime;
-      const dt = time - (lastTime - startTime);
-      lastTime = Date.now();
 
       // Update slash progress
       if (slashEffect.active) {
@@ -369,13 +378,23 @@ export function AsciiBackground() {
 
       if (isDomainExpansion) {
         globalWind = 0; // Wind freezes
-        ctx.fillStyle = "rgba(0, 0, 0, 0.6)"; // Darken background instantly
+        const bgGrad = ctx.createRadialGradient(
+          canvas.width / 2,
+          canvas.height / 2,
+          50,
+          canvas.width / 2,
+          canvas.height / 2,
+          Math.max(canvas.width, canvas.height) * 0.75
+        );
+        bgGrad.addColorStop(0, "rgba(24, 6, 12, 0.94)");
+        bgGrad.addColorStop(1, "rgba(10, 2, 5, 0.98)");
+        ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
-      // Smooth Cinematic Zoom (Spikes on slash impact)
-      const targetZoom = isDomainExpansion ? 1.15 : (slashEffect.active ? 1.25 : 1.0);
-      currentZoom += (targetZoom - currentZoom) * 0.15; // Fast, punchy zoom interpolation
+      // Smooth Cinematic Zoom (Snappy, punchy impact without lingering)
+      const targetZoom = isDomainExpansion ? 1.08 : (slashEffect.active ? 1.05 : 1.0);
+      currentZoom += (targetZoom - currentZoom) * 0.3; // Fast, snappy return
 
       ctx.save();
       // Zoom from the center of the screen
@@ -481,7 +500,7 @@ export function AsciiBackground() {
       // Draw Slash Line Cut
       if (slashEffect.active && slashEffect.p1 && slashEffect.p2) {
         const lifeRatio = slashEffect.progress / slashEffect.maxLife;
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = isLightMode ? primaryColor : "#ffffff";
         ctx.lineWidth = 3 * (1 - lifeRatio); // Thin slash cut line
         ctx.shadowBlur = 15;
         ctx.shadowColor = primaryColor;
@@ -497,7 +516,7 @@ export function AsciiBackground() {
       const spawnRate = globalWind > 1.0 ? 0.6 : 0.3;
       if (!isDomainExpansion && Math.random() < spawnRate && canopy.length > 0) {
         const source = canopy[Math.floor(Math.random() * canopy.length)];
-        fallingPetals.push(new FallingPetal(source.baseX, source.baseY, primaryColor, secondaryColor));
+        fallingPetals.push(new FallingPetal(source.baseX, source.baseY, primaryColor, secondaryColor, isLightMode));
       }
 
       // Update Falling Petals & Loot Drops
@@ -602,33 +621,7 @@ export function AsciiBackground() {
         if (ft.life <= 0) floatTexts.splice(i, 1);
       }
 
-      // Invert half plane divided by slash line (dramatic impact effect)
-      if (flashTime > 0 && slashEffect.p1 && slashEffect.p2) {
-        ctx.save();
-        ctx.beginPath();
-        // Move along slash line
-        ctx.moveTo(slashEffect.p1.x, slashEffect.p1.y);
-        ctx.lineTo(slashEffect.p2.x, slashEffect.p2.y);
-
-        // Expand path along normal to cover half of screen
-        const dy = slashEffect.p2.y - slashEffect.p1.y;
-        const dx = slashEffect.p2.x - slashEffect.p1.x;
-        const nx = -dy * 100;
-        const ny = dx * 100;
-
-        ctx.lineTo(slashEffect.p2.x + nx, slashEffect.p2.y + ny);
-        ctx.lineTo(slashEffect.p1.x + nx, slashEffect.p1.y + ny);
-        ctx.closePath();
-
-        // Apply difference composite mode to mathematically invert pixels
-        ctx.globalCompositeOperation = "difference";
-        ctx.fillStyle = "#ffffff";
-        ctx.fill();
-        ctx.restore();
-        flashTime--;
-      }
-
-      ctx.restore(); // Restore canvas context after drawing everything (including bisection flash)
+      ctx.restore(); // Restore canvas context after drawing everything
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -636,88 +629,81 @@ export function AsciiBackground() {
     const handleMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
-      if (isDragging) {
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const canvasX = centerX + (mouseX - centerX) / currentZoom;
-        const canvasY = centerY + (mouseY - centerY) / currentZoom;
-        dragPoints.push({ x: canvasX, y: canvasY });
-        if (dragPoints.length > 40) dragPoints.shift(); // Limit path size
+      if (isPointerDown) {
+        const dist = Math.hypot(mouseX - startPointerX, mouseY - startPointerY);
+        if (dist > 8) {
+          isDragging = true;
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+          const canvasX = centerX + (mouseX - centerX) / currentZoom;
+          const canvasY = centerY + (mouseY - centerY) / currentZoom;
+          dragPoints.push({ x: canvasX, y: canvasY });
+          if (dragPoints.length > 50) dragPoints.shift(); // Limit path size
+        }
       }
     };
 
-    const handleMouseDown = () => {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.closest(
+          "button, a, input, textarea, select, [role='button'], [role='link']"
+        ) ||
+          target.tagName === "BUTTON" ||
+          target.tagName === "A" ||
+          target.tagName === "INPUT")
+      ) {
+        return;
+      }
+
+      isPointerDown = true;
+      startPointerX = e.clientX;
+      startPointerY = e.clientY;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      isDragging = false;
       dragPoints = [];
 
-      // Temporarily disable text selection highlights globally during active mouse hold/drag
-      const body = document.body;
-      if (body) {
-        body.style.userSelect = "none";
-        body.style.webkitUserSelect = "none";
-      }
-
-      if (dragTimeout) clearTimeout(dragTimeout);
-      dragTimeout = setTimeout(() => {
-        isDragging = true;
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const canvasX = centerX + (mouseX - centerX) / currentZoom;
-        const canvasY = centerY + (mouseY - centerY) / currentZoom;
-        dragPoints.push({ x: canvasX, y: canvasY });
-      }, 300); // 300ms delay for click-and-hold speedlines
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const canvasX = centerX + (mouseX - centerX) / currentZoom;
+      const canvasY = centerY + (mouseY - centerY) / currentZoom;
+      dragPoints.push({ x: canvasX, y: canvasY });
     };
+
     const handleMouseUp = () => {
-      if (dragTimeout) {
-        clearTimeout(dragTimeout);
-        dragTimeout = null;
-      }
-
-      // Re-enable text selection highlights on mouse release
-      const body = document.body;
-      if (body) {
-        body.style.userSelect = "";
-        body.style.webkitUserSelect = "";
-      }
-
-      if (isDragging && dragPoints.length > 2) {
+      if (isDragging && dragPoints.length >= 2) {
         const p1 = dragPoints[0];
         const p2 = dragPoints[dragPoints.length - 1];
+        const slashDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
-        // Trigger visual slash effect
-        slashEffect = {
-          active: true,
-          p1: p1,
-          p2: p2,
-          progress: 0,
-          maxLife: 30
-        };
-        flashTime = 6;
+        if (slashDist > 40) {
+          // Trigger visual slash effect
+          slashEffect = {
+            active: true,
+            p1: p1,
+            p2: p2,
+            progress: 0,
+            maxLife: 16
+          };
 
-        // Spawn giant manga slash kanji/effects at the center of the slash path
-        const midX = (p1.x + p2.x) / 2;
-        const midY = (p1.y + p2.y) / 2;
-        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+          // Spawn giant manga slash kanji/effects at the center of the slash path
+          const midX = (p1.x + p2.x) / 2;
+          const midY = (p1.y + p2.y) / 2;
+          const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
 
-        floatTexts.push(new FloatingText(
-          midX,
-          midY,
-          ["斬", "ザシュッ", "SLASH!", "ズバァッ!"][Math.floor(Math.random() * 4)],
-          true,
-          angle
-        ));
-
-        // Trigger dramatic full-screen CSS filter impact flash
-        if (body) {
-          body.style.transition = "none";
-          body.style.filter = "grayscale(100%) invert(100%) contrast(200%)";
-
-          setTimeout(() => {
-            body.style.transition = "filter 0.8s cubic-bezier(0.1, 0.8, 0.25, 1)";
-            body.style.filter = "none";
-          }, 150);
+          floatTexts.push(new FloatingText(
+            midX,
+            midY,
+            ["斬", "ザシュッ", "SLASH!", "ズバァッ!"][Math.floor(Math.random() * 4)],
+            true,
+            angle
+          ));
         }
       }
 
+      isPointerDown = false;
       isDragging = false;
       dragPoints = [];
     };
@@ -726,19 +712,44 @@ export function AsciiBackground() {
       const root = document.documentElement;
       if (active) {
         root.style.setProperty("--primary", "#ff0044");
-        root.style.setProperty("--secondary", "#ff6688");
+        root.style.setProperty("--secondary", "#ff4d6d");
         root.style.setProperty("--teritiary", "#990028");
-        root.style.setProperty("--image-filter", "hue-rotate(130deg) saturate(1.8) contrast(0.8) brightness(0.8)");
+        root.style.setProperty("--background", "#0d0407");
+        root.style.setProperty("--textColor", "#ffffff");
+        root.style.setProperty("--muted-textColor", "#fda4af");
+        root.style.setProperty(
+          "--image-filter",
+          "hue-rotate(140deg) saturate(2.4) brightness(0.95)"
+        );
       } else {
         root.style.removeProperty("--primary");
         root.style.removeProperty("--secondary");
         root.style.removeProperty("--teritiary");
+        root.style.removeProperty("--background");
+        root.style.removeProperty("--textColor");
+        root.style.removeProperty("--muted-textColor");
         root.style.removeProperty("--image-filter");
       }
       updateColors();
     };
 
     const handleMouseClick = (e: MouseEvent) => {
+      if (e.defaultPrevented) return;
+
+      // Prevent clicks on UI controls, sections, cards, links, or buttons from triggering Domain Expansion
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.closest(
+          "button, a, input, textarea, select, [role='button'], [role='link'], [data-interactive], #experience, #projects, #about, #skills, #home, nav, footer, header"
+        ) ||
+          target.tagName === "BUTTON" ||
+          target.tagName === "A" ||
+          target.tagName === "INPUT")
+      ) {
+        return;
+      }
+
       const mx = e.clientX;
       const my = e.clientY;
       const inCanopyBounds = mx > 0 && mx < window.innerWidth * 0.4 && my > window.innerHeight * 0.2 && my < window.innerHeight * 0.8;
@@ -753,23 +764,39 @@ export function AsciiBackground() {
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        mouseX = e.touches[0].clientX;
-        mouseY = e.touches[0].clientY;
-        handleMouseDown();
+        const touch = e.touches[0];
+        mouseX = touch.clientX;
+        mouseY = touch.clientY;
+        startPointerX = touch.clientX;
+        startPointerY = touch.clientY;
+        isPointerDown = true;
+        isDragging = false;
+        dragPoints = [];
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const canvasX = centerX + (mouseX - centerX) / currentZoom;
+        const canvasY = centerY + (mouseY - centerY) / currentZoom;
+        dragPoints.push({ x: canvasX, y: canvasY });
       }
     };
     
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        mouseX = e.touches[0].clientX;
-        mouseY = e.touches[0].clientY;
-        if (isDragging) {
-          const centerX = canvas.width / 2;
-          const centerY = canvas.height / 2;
-          const canvasX = centerX + (mouseX - centerX) / currentZoom;
-          const canvasY = centerY + (mouseY - centerY) / currentZoom;
-          dragPoints.push({ x: canvasX, y: canvasY });
-          if (dragPoints.length > 40) dragPoints.shift();
+        const touch = e.touches[0];
+        mouseX = touch.clientX;
+        mouseY = touch.clientY;
+        if (isPointerDown) {
+          const dist = Math.hypot(mouseX - startPointerX, mouseY - startPointerY);
+          if (dist > 12) {
+            isDragging = true;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const canvasX = centerX + (mouseX - centerX) / currentZoom;
+            const canvasY = centerY + (mouseY - centerY) / currentZoom;
+            dragPoints.push({ x: canvasX, y: canvasY });
+            if (dragPoints.length > 50) dragPoints.shift();
+          }
         }
       }
     };
@@ -778,7 +805,23 @@ export function AsciiBackground() {
       handleMouseUp();
     };
 
+    const handleScroll = () => {
+      // Cancel active drag immediately when the user scrolls so scrolling never registers as a slash
+      if (isPointerDown || isDragging) {
+        isPointerDown = false;
+        isDragging = false;
+        dragPoints = [];
+      }
+    };
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleThemeChange = () => {
+      updateColors();
+    };
+    mediaQuery.addEventListener("change", handleThemeChange);
+
     window.addEventListener('resize', init);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
@@ -792,7 +835,9 @@ export function AsciiBackground() {
     animate();
 
     return () => {
+      mediaQuery.removeEventListener("change", handleThemeChange);
       window.removeEventListener('resize', init);
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -802,7 +847,6 @@ export function AsciiBackground() {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
       
-      if (dragTimeout) clearTimeout(dragTimeout);
       cancelAnimationFrame(animationFrameId);
 
       // Reset body styles and domain theme overrides to prevent leaks

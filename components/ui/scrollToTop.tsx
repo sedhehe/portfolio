@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence, animate } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Tooltip,
   TooltipContent,
