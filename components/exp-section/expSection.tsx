@@ -140,7 +140,7 @@ export default function ExpSection() {
           {"// 03. Track Record"}
         </p>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-textColor">
-          Professional Experience &amp; Milestones
+          Professional Experience &amp; Education
         </h2>
       </div>
 

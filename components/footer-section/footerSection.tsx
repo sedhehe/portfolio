@@ -386,7 +386,7 @@ export default function FooterSection() {
           <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
             Socials
           </h3>
-          <div className="flex gap-2 sm:gap-4 items-center">
+          <div className="flex items-center sm:-ml-2">
             <Tooltip open={githubOpen} onOpenChange={handleGithubOpenChange}>
               <TooltipTrigger asChild>
                 <a
@@ -400,7 +400,7 @@ export default function FooterSection() {
                   onPointerDown={() => {
                     isGithubActionRef.current = true;
                   }}
-                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
+                  className="cursor-pointer p-2 rounded-lg hover:bg-textColor/5 flex items-center justify-center"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <GithubIcon className="w-5 h-5 hover:text-primary hover:scale-110 transition-all duration-300" />
@@ -456,7 +456,7 @@ export default function FooterSection() {
                   onPointerDown={() => {
                     isLinkedinActionRef.current = true;
                   }}
-                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
+                  className="cursor-pointer p-2 rounded-lg hover:bg-textColor/5 flex items-center justify-center"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <LinkedInIcon className="w-5 h-5 hover:text-primary hover:scale-110 transition-all duration-300" />
@@ -511,7 +511,7 @@ export default function FooterSection() {
                   }}
                   whileTap={{ scale: 0.92 }}
                   aria-label="Copy email address"
-                  className="hover:text-primary hover:scale-110 transition-all duration-300 cursor-pointer flex items-center justify-center text-textColor min-w-[44px] min-h-[44px] rounded-lg hover:bg-textColor/5"
+                  className="hover:text-primary hover:scale-110 transition-all duration-300 cursor-pointer flex items-center justify-center text-textColor p-2 rounded-lg hover:bg-textColor/5"
                 >
                   <Mail className="w-5 h-5" />
                 </motion.button>

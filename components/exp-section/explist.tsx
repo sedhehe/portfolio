@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import React from "react";
 
 export interface ExpItemProps {
@@ -24,9 +25,13 @@ export default function ExpCard({
   bullets,
 }: ExpItemProps) {
   return (
-    <div
+    <motion.div
       id={`exp-card-${index}`}
       className="relative pl-6 sm:pl-10 pb-8 sm:pb-12 last:pb-2 group scroll-mt-24 sm:scroll-mt-32"
+      initial={index > 0 ? { y: 16 } : undefined}
+      whileInView={index > 0 ? { y: 0 } : undefined}
+      viewport={index > 0 ? { once: true, margin: "-40px" } : undefined}
+      transition={index > 0 ? { duration: 0.45, ease: [0.16, 1, 0.3, 1] } : undefined}
     >
       {/* Vertical Spine Line */}
       <div
@@ -78,7 +83,7 @@ export default function ExpCard({
         }}
         className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md shadow-md transition-all duration-300 border cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
           isActive
-            ? "border-primary/60"
+            ? "border-primary/60 shadow-xl"
             : "border-textColor/10 dark:border-white/5 hover:border-primary/40"
         }`}
       >
@@ -119,6 +124,6 @@ export default function ExpCard({
           ))}
         </ul>
       </div>
-    </div>
+    </motion.div>
   );
 }
