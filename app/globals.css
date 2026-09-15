@@ -129,7 +129,6 @@ body {
   background-color: var(--background);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  transition: background-color 0.6s ease, color 0.6s ease;
 }
 
 /* Standardized Glass Card (Anti-vibe-code elevation consistency) */

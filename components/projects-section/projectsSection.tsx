@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
 import ProjectTile, {
   ProjectTileProps,
 } from "@/components/projects-section/projectTile";
@@ -121,16 +120,12 @@ export default function ProjectsSection() {
   }, []);
 
   return (
-    <motion.section
-      className="my-10 p-4 relative z-10 max-w-6xl mx-auto"
+    <section
+      className="my-8 sm:my-10 px-4 sm:px-6 relative z-10 max-w-6xl mx-auto"
       id="projects"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
     >
       {/* Section Header */}
-      <div className="space-y-2 mb-10 text-center sm:text-left">
+      <div className="space-y-2 mb-6 sm:mb-10 text-center sm:text-left">
         <p className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
           {"// 04. Selected Works"}
         </p>
@@ -156,6 +151,6 @@ export default function ProjectsSection() {
           />
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }

@@ -130,12 +130,12 @@ export default function ExpSection() {
 
   return (
     <section
-      className="relative z-10 py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
+      className="relative z-10 py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto"
       id="experience"
       aria-label="Professional Experience"
     >
       {/* Section Header */}
-      <div className="space-y-2 mb-10 text-center sm:text-left">
+      <div className="space-y-2 mb-6 sm:mb-10 text-center sm:text-left">
         <p className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
           {"// 03. Track Record"}
         </p>

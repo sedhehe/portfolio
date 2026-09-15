@@ -44,6 +44,7 @@ export default function HeroSection() {
   const isDownloadHoveredRef = useRef(false);
 
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mailLeaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const githubTimerRef = useRef<NodeJS.Timeout | null>(null);
   const linkedinTimerRef = useRef<NodeJS.Timeout | null>(null);
   const downloadTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +53,10 @@ export default function HeroSection() {
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current);
       resetTimerRef.current = null;
+    }
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
     }
     isMailActionRef.current = false;
     setMailCopied(false);
@@ -89,6 +94,10 @@ export default function HeroSection() {
     e?.preventDefault();
     e?.stopPropagation();
     isMailActionRef.current = true;
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
+    }
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current);
     }
@@ -109,17 +118,26 @@ export default function HeroSection() {
 
   const handleMailMouseEnter = () => {
     isMailHoveredRef.current = true;
-    if (mailCopied) {
-      resetMailCopyState();
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
     }
     setMailTooltipOpen(true);
   };
 
   const handleMailMouseLeave = () => {
     isMailHoveredRef.current = false;
-    if (!mailCopied && !isMailActionRef.current) {
-      setMailTooltipOpen(false);
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
     }
+    mailLeaveTimerRef.current = setTimeout(() => {
+      if (!isMailHoveredRef.current && !isMailActionRef.current) {
+        setMailTooltipOpen(false);
+        if (mailCopied) {
+          resetMailCopyState();
+        }
+      }
+    }, 180);
   };
 
   const handleGithubClick = (e: React.MouseEvent) => {
@@ -268,6 +286,7 @@ export default function HeroSection() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      if (mailLeaveTimerRef.current) clearTimeout(mailLeaveTimerRef.current);
       if (githubTimerRef.current) clearTimeout(githubTimerRef.current);
       if (linkedinTimerRef.current) clearTimeout(linkedinTimerRef.current);
       if (downloadTimerRef.current) clearTimeout(downloadTimerRef.current);
@@ -275,19 +294,13 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <motion.section
+    <section
       className="p-4 sm:p-7 my-2 mx-auto flex flex-col items-center relative z-10 max-w-4xl"
-      animate={{ opacity: [0, 1] }}
-      transition={{ duration: 1 }}
       id="home"
     >
       {/* Profile and Details Row */}
-      <div className="flex flex-col items-center text-center md:flex-row md:justify-center md:items-center md:gap-8 w-full md:my-10">
-        <motion.div
-          className="relative w-48 h-48 shrink-0"
-          animate={{ opacity: [0, 1] }}
-          transition={{ duration: 0.5 }}
-        >
+      <div className="flex flex-col items-center text-center md:flex-row md:justify-center md:items-center md:gap-8 w-full my-6 sm:my-10">
+        <div className="relative w-36 h-36 sm:w-48 sm:h-48 shrink-0">
           {/* Animated Circle around Profile Image */}
           <motion.svg
             className="absolute inset-0 w-full h-full"
@@ -326,7 +339,7 @@ export default function HeroSection() {
             className="rounded-full object-cover p-2"
             style={{ filter: "none" }}
           />
-        </motion.div>
+        </div>
 
         {/* Intro Text Section */}
         <div className="mt-4 md:mt-0 md:text-left">
@@ -364,7 +377,7 @@ export default function HeroSection() {
           </p>
 
           {/* Socials Row */}
-          <div className="flex mt-5 items-center justify-center md:justify-start gap-4">
+          <div className="flex mt-5 items-center justify-center md:justify-start gap-2 sm:gap-4">
             <Tooltip open={githubOpen} onOpenChange={handleGithubOpenChange}>
               <TooltipTrigger asChild>
                 <a
@@ -378,7 +391,7 @@ export default function HeroSection() {
                   onPointerDown={() => {
                     isGithubActionRef.current = true;
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <GithubIcon className="w-7 h-7 hover:text-primary hover:scale-110 transition-transform duration-300" />
@@ -434,7 +447,7 @@ export default function HeroSection() {
                   onPointerDown={() => {
                     isLinkedinActionRef.current = true;
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <LinkedInIcon className="w-7 h-7 hover:text-primary hover:scale-110 transition-transform duration-300" />
@@ -489,17 +502,19 @@ export default function HeroSection() {
                   }}
                   whileTap={{ scale: 0.92 }}
                   aria-label="Copy email address"
-                  className="hover:text-primary hover:scale-110 transition-transform duration-300 cursor-pointer text-textColor flex items-center justify-center"
+                  className="hover:text-primary hover:scale-110 transition-transform duration-300 cursor-pointer text-textColor min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
-                  <Mail className="w-8 h-8" />
+                  <Mail className="w-7 h-7 sm:w-8 sm:h-8" />
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent
-                onClick={handleMailCopy}
-                onPointerDown={() => {
+                onMouseEnter={handleMailMouseEnter}
+                onMouseLeave={handleMailMouseLeave}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
                   isMailActionRef.current = true;
                 }}
-                className="cursor-pointer select-none py-1.5 px-3 overflow-hidden"
+                className="select-none py-1.5 px-3 overflow-hidden pointer-events-auto"
                 title="Click to copy email"
               >
                 <AnimatePresence mode="wait" initial={false}>
@@ -511,6 +526,7 @@ export default function HeroSection() {
                       exit={{ opacity: 0, y: -3, scale: 0.96 }}
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="flex items-center gap-2 text-emerald-400 font-mono text-xs"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <motion.span
                         initial={{ scale: 0.4, rotate: -20 }}
@@ -531,8 +547,21 @@ export default function HeroSection() {
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="flex items-center gap-2 font-mono text-xs"
                     >
-                      <span>{email}</span>
-                      <Copy className="w-3.5 h-3.5 opacity-70 hover:opacity-100 transition-opacity" />
+                      <span
+                        onClick={handleMailCopy}
+                        className="hover:underline cursor-pointer"
+                      >
+                        {email}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleMailCopy}
+                        aria-label="Copy email to clipboard"
+                        title="Copy email to clipboard"
+                        className="p-1 -mr-1 rounded hover:bg-white/20 active:scale-90 transition-all cursor-pointer flex items-center justify-center"
+                      >
+                        <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100 transition-opacity" />
+                      </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -551,10 +580,10 @@ export default function HeroSection() {
                   onPointerDown={() => {
                     isDownloadActionRef.current = true;
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
-                    <Download className="w-8 h-8 hover:text-primary hover:scale-110 transition-transform duration-300" />
+                    <Download className="w-7 h-7 sm:w-8 sm:h-8 hover:text-primary hover:scale-110 transition-transform duration-300" />
                   </motion.div>
                 </a>
               </TooltipTrigger>
@@ -599,13 +628,8 @@ export default function HeroSection() {
       </div>
 
       {/* Tagline Card (Part of Hero Section) */}
-      <motion.div
-        className="mt-6 md:mt-8 w-full flex justify-center"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.3 }}
-      >
-        <h2 className="text-center font-bold text-xl sm:text-2xl md:text-3xl bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 transform-gpu p-5 sm:p-7 rounded-3xl max-w-3xl w-fit mx-auto shadow-xl text-textColor">
+      <div className="mt-6 md:mt-8 w-full flex justify-center px-1">
+        <h2 className="text-center font-bold text-lg sm:text-2xl md:text-3xl bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 transform-gpu p-4 sm:p-6 md:p-7 rounded-2xl sm:rounded-3xl max-w-3xl w-full sm:w-fit mx-auto shadow-xl text-textColor leading-relaxed sm:leading-normal">
           I am a{" "}
           <motion.span
             className="bg-clip-text text-transparent"
@@ -643,7 +667,7 @@ export default function HeroSection() {
           </motion.span>{" "}
           Engineer
         </h2>
-      </motion.div>
-    </motion.section>
+      </div>
+    </section>
   );
 }

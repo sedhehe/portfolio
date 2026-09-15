@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import React from "react";
 
 export interface ExpItemProps {
@@ -25,13 +24,9 @@ export default function ExpCard({
   bullets,
 }: ExpItemProps) {
   return (
-    <motion.div
+    <div
       id={`exp-card-${index}`}
-      className="relative pl-8 sm:pl-10 pb-12 last:pb-2 group scroll-mt-32"
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
+      className="relative pl-6 sm:pl-10 pb-8 sm:pb-12 last:pb-2 group scroll-mt-24 sm:scroll-mt-32"
     >
       {/* Vertical Spine Line */}
       <div
@@ -67,18 +62,27 @@ export default function ExpCard({
 
       {/* Experience Content Card */}
       <div
+        role="button"
+        tabIndex={0}
+        onClick={onBulletClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onBulletClick?.();
+          }
+        }}
         style={{
           boxShadow: isActive
             ? "0 0 24px -2px color-mix(in srgb, var(--primary) 18%, transparent)"
             : undefined,
         }}
-        className={`rounded-2xl p-5 sm:p-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md shadow-md transition-all duration-300 border ${
+        className={`rounded-xl sm:rounded-2xl p-4 sm:p-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md shadow-md transition-all duration-300 border cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
           isActive
             ? "border-primary/60"
             : "border-textColor/10 dark:border-white/5 hover:border-primary/40"
         }`}
       >
-        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 sm:gap-2 mb-3">
           <div>
             <h3 className="text-base sm:text-lg font-bold text-textColor tracking-tight">
               {role}
@@ -115,6 +119,6 @@ export default function ExpCard({
           ))}
         </ul>
       </div>
-    </motion.div>
+    </div>
   );
 }

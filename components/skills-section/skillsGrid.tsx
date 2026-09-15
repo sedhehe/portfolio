@@ -68,7 +68,7 @@ export default function SkillsGrid({
           onClick?.();
         }
       }}
-      className="group relative rounded-2xl p-4 md:px-6 md:py-5 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 flex items-center gap-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:min-h-24 w-full"
+      className="group relative rounded-2xl p-3.5 sm:p-4 md:px-6 md:py-5 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 flex items-center gap-3 sm:gap-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary min-h-[68px] md:min-h-24 w-full"
     >
       {/* Dynamic Animated Gradient Outerline */}
       <motion.svg

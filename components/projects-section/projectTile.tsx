@@ -90,9 +90,6 @@ export default function ProjectTile(props: ProjectTileProps) {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
       animate={{
         scale: props.isSkillHighlighted ? 1.018 : 1,
       }}
@@ -120,7 +117,7 @@ export default function ProjectTile(props: ProjectTileProps) {
       <FollowingBall x={x} y={y} opacity={opacity} scale={scale} />
 
       {/* image div: wide and narrow to showcase seamless gradient */}
-      <div className="relative z-10 w-full md:w-[32%] lg:w-[30%] h-52 md:h-auto min-h-[200px] md:min-h-[210px] shrink-0 overflow-hidden">
+      <div className="relative z-10 w-full md:w-[32%] lg:w-[30%] h-48 sm:h-52 md:h-auto min-h-[180px] sm:min-h-[200px] md:min-h-[210px] shrink-0 overflow-hidden">
         <Image
           src={props.source}
           alt={props.title}
@@ -143,7 +140,7 @@ export default function ProjectTile(props: ProjectTileProps) {
       </div>
 
       {/* content div */}
-      <div className="relative z-10 ml-0 md:ml-6 p-5 md:py-6 md:px-7 flex flex-col flex-1 justify-between">
+      <div className="relative z-10 ml-0 md:ml-6 p-4 sm:p-5 md:py-6 md:px-7 flex flex-col flex-1 justify-between">
         <div>
           <h3 className="text-lg md:text-xl font-bold text-textColor tracking-tight mt-0.5 mb-2">
             {props.title}
@@ -187,7 +184,7 @@ export default function ProjectTile(props: ProjectTileProps) {
                   e.stopPropagation();
                   handleClick();
                 }}
-                className="inline-flex items-center gap-2 h-8 px-3.5 rounded-full bg-textColor/[0.06] hover:bg-textColor/[0.15] text-textColor border border-textColor/20 hover:border-primary text-xs font-semibold font-mono transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 min-h-[36px] px-3.5 rounded-full bg-textColor/[0.06] hover:bg-textColor/[0.15] text-textColor border border-textColor/20 hover:border-primary text-xs font-semibold font-mono transition-all cursor-pointer"
                 aria-label={`View code for ${props.title}`}
               >
                 <GithubIcon className="w-3.5 h-3.5" aria-hidden="true" />

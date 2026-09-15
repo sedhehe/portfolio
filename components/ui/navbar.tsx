@@ -19,12 +19,12 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className="p-6 flex w-full items-center justify-between relative z-30"
+      className="p-4 sm:p-6 flex w-full items-center justify-between relative z-30"
       animate={{ opacity: [0, 1] }}
       transition={{ duration: 0.5 }}
     >
       <div className="flex justify-start">
-        <Link href="/" aria-label="Go to home">
+        <Link href="/" aria-label="Go to home" className="flex items-center min-h-[44px]">
           <AnimatedLogo />
         </Link>
       </div>
@@ -50,7 +50,7 @@ export default function Navbar() {
       {/* Mobile hamburger button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="sm:hidden flex flex-col gap-1.5 cursor-pointer p-2"
+        className="sm:hidden flex flex-col gap-1.5 cursor-pointer min-w-[44px] min-h-[44px] items-center justify-center p-2 rounded-lg hover:bg-textColor/5"
         aria-label="Toggle menu"
       >
         <motion.span
@@ -75,15 +75,15 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-background/95 backdrop-blur-xl z-50 sm:hidden flex flex-col p-6"
+            className="fixed inset-0 bg-background/95 backdrop-blur-xl z-50 sm:hidden flex flex-col p-5"
           >
-            <div className="flex justify-between items-center mb-8">
-              <Link href="/" onClick={() => setIsOpen(false)}>
+            <div className="flex justify-between items-center mb-6">
+              <Link href="/" onClick={() => setIsOpen(false)} className="flex items-center min-h-[44px]">
                 <AnimatedLogo />
               </Link>
               <motion.button
                 onClick={() => setIsOpen(false)}
-                className="flex flex-col gap-1.5 cursor-pointer justify-center p-2"
+                className="flex flex-col gap-1.5 cursor-pointer justify-center items-center min-w-[44px] min-h-[44px] p-2 rounded-lg hover:bg-textColor/5"
                 aria-label="Close menu"
               >
                 <motion.span
@@ -102,7 +102,7 @@ export default function Navbar() {
             </div>
 
             {/* Menu items */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
               {navItems.labels.map((label, index) => (
                 <motion.div
                   key={label}
@@ -112,7 +112,7 @@ export default function Navbar() {
                 >
                   <Link
                     href={navItems.href[index]}
-                    className="text-textColor hover:text-primary transition-colors duration-200 text-lg font-medium"
+                    className="text-textColor hover:text-primary transition-colors duration-200 text-lg font-medium block py-3 px-2 rounded-lg hover:bg-textColor/5"
                     onClick={(e) => {
                       handleNavClick(e, navItems.href[index]);
                       setIsOpen(false);
@@ -124,12 +124,13 @@ export default function Navbar() {
               ))}
             </div>
 
-            <div className="flex gap-6 mt-auto pt-6 border-t border-textColor/10">
+            <div className="flex gap-4 mt-auto pt-6 border-t border-textColor/10">
               <Link
                 href="https://github.com/sedhehe"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
               >
                 <GithubIcon className="w-6 h-6 hover:text-primary transition-colors duration-200" />
               </Link>
@@ -138,10 +139,15 @@ export default function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
               >
                 <LinkedInIcon className="w-6 h-6 hover:text-primary transition-colors duration-200" />
               </Link>
-              <Link href="mailto:rvivek0310@gmail.com" aria-label="Email">
+              <Link
+                href="mailto:rvivek0310@gmail.com"
+                aria-label="Email"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
+              >
                 <Mail className="w-6 h-6 hover:text-primary transition-colors duration-200" />
               </Link>
             </div>

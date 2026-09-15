@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Source_Code_Pro } from "next/font/google";
 import Navbar from "@/components/ui/navbar";
 import ScrollToTop from "@/components/ui/scrollToTop";
@@ -17,6 +17,15 @@ const sourceCodeProMono = Source_Code_Pro({
   variable: "--font-source-code-pro-mono",
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#121212" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sedhehe.vercel.app"),

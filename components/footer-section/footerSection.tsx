@@ -47,6 +47,7 @@ export default function FooterSection() {
   const isDownloadHoveredRef = useRef(false);
 
   const resetTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const mailLeaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const githubTimerRef = useRef<NodeJS.Timeout | null>(null);
   const linkedinTimerRef = useRef<NodeJS.Timeout | null>(null);
   const downloadTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,6 +56,10 @@ export default function FooterSection() {
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current);
       resetTimerRef.current = null;
+    }
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
     }
     isMailActionRef.current = false;
     setMailCopied(false);
@@ -92,6 +97,10 @@ export default function FooterSection() {
     e?.preventDefault();
     e?.stopPropagation();
     isMailActionRef.current = true;
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
+    }
     if (resetTimerRef.current) {
       clearTimeout(resetTimerRef.current);
     }
@@ -112,17 +121,26 @@ export default function FooterSection() {
 
   const handleMailMouseEnter = () => {
     isMailHoveredRef.current = true;
-    if (mailCopied) {
-      resetMailCopyState();
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
+      mailLeaveTimerRef.current = null;
     }
     setMailTooltipOpen(true);
   };
 
   const handleMailMouseLeave = () => {
     isMailHoveredRef.current = false;
-    if (!mailCopied && !isMailActionRef.current) {
-      setMailTooltipOpen(false);
+    if (mailLeaveTimerRef.current) {
+      clearTimeout(mailLeaveTimerRef.current);
     }
+    mailLeaveTimerRef.current = setTimeout(() => {
+      if (!isMailHoveredRef.current && !isMailActionRef.current) {
+        setMailTooltipOpen(false);
+        if (mailCopied) {
+          resetMailCopyState();
+        }
+      }
+    }, 180);
   };
 
   const handleGithubClick = (e: React.MouseEvent) => {
@@ -271,6 +289,7 @@ export default function FooterSection() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      if (mailLeaveTimerRef.current) clearTimeout(mailLeaveTimerRef.current);
       if (githubTimerRef.current) clearTimeout(githubTimerRef.current);
       if (linkedinTimerRef.current) clearTimeout(linkedinTimerRef.current);
       if (downloadTimerRef.current) clearTimeout(downloadTimerRef.current);
@@ -278,29 +297,25 @@ export default function FooterSection() {
   }, []);
 
   return (
-    <motion.footer
-      className="mt-16 border-t border-textColor/20 py-12 px-6 sm:px-10 bg-foreground/10 backdrop-blur-md transform-gpu rounded-t-2xl relative z-10"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8, ease: "easeInOut" }}
+    <footer
+      className="mt-12 sm:mt-16 border-t border-textColor/20 py-10 sm:py-12 px-4 sm:px-10 bg-foreground/10 backdrop-blur-md transform-gpu rounded-t-2xl relative z-10"
     >
-      <div className="w-full grid gap-12 md:gap-16 grid-cols-1 md:grid-cols-4 md:items-start">
-        <div className="flex flex-col items-center md:items-start gap-3">
+      <div className="w-full grid gap-8 sm:gap-10 md:gap-16 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 items-center sm:items-start text-center sm:text-left">
+        <div className="flex flex-col items-center sm:items-start gap-3">
           <AnimatedLogo />
         </div>
 
-        <div className="flex flex-col items-center md:items-start gap-3">
+        <div className="flex flex-col items-center sm:items-start gap-3">
           <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
             Navigate
           </h3>
-          <ul className="flex flex-col gap-2 items-center md:items-start">
+          <ul className="flex flex-col gap-2 items-center sm:items-start">
             {navItems.labels.map((label) => (
               <li key={label}>
                 <Link
                   href={navItems.href[navItems.labels.indexOf(label)]}
                   onClick={(e) => handleNavClick(e, navItems.href[navItems.labels.indexOf(label)])}
-                  className="text-sm text-textColor hover:text-primary transition-colors duration-200"
+                  className="text-sm text-textColor hover:text-primary transition-colors duration-200 py-1 block"
                 >
                   {label}
                 </Link>
@@ -309,7 +324,7 @@ export default function FooterSection() {
           </ul>
         </div>
 
-        <div className="flex flex-col items-center md:items-start gap-3">
+        <div className="flex flex-col items-center sm:items-start gap-3">
           <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
             Download
           </h3>
@@ -324,7 +339,7 @@ export default function FooterSection() {
                 onPointerDown={() => {
                   isDownloadActionRef.current = true;
                 }}
-                className="text-sm text-textColor hover:text-primary transition-colors duration-200 cursor-pointer"
+                className="text-sm text-textColor hover:text-primary transition-colors duration-200 cursor-pointer py-1 block"
               >
                 My Resume
               </a>
@@ -367,11 +382,11 @@ export default function FooterSection() {
           </Tooltip>
         </div>
 
-        <div className="flex flex-col items-center md:items-start gap-3">
+        <div className="flex flex-col items-center sm:items-start gap-3">
           <h3 className="text-xs uppercase tracking-widest font-semibold text-muted-foreground">
-            Connect
+            Socials
           </h3>
-          <div className="flex items-center gap-4">
+          <div className="flex gap-2 sm:gap-4 items-center">
             <Tooltip open={githubOpen} onOpenChange={handleGithubOpenChange}>
               <TooltipTrigger asChild>
                 <a
@@ -385,7 +400,7 @@ export default function FooterSection() {
                   onPointerDown={() => {
                     isGithubActionRef.current = true;
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <GithubIcon className="w-5 h-5 hover:text-primary hover:scale-110 transition-all duration-300" />
@@ -441,7 +456,7 @@ export default function FooterSection() {
                   onPointerDown={() => {
                     isLinkedinActionRef.current = true;
                   }}
-                  className="cursor-pointer"
+                  className="cursor-pointer min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-textColor/5"
                 >
                   <motion.div whileTap={{ scale: 0.92 }}>
                     <LinkedInIcon className="w-5 h-5 hover:text-primary hover:scale-110 transition-all duration-300" />
@@ -496,17 +511,19 @@ export default function FooterSection() {
                   }}
                   whileTap={{ scale: 0.92 }}
                   aria-label="Copy email address"
-                  className="hover:text-primary hover:scale-110 transition-all duration-300 cursor-pointer flex items-center justify-center text-textColor"
+                  className="hover:text-primary hover:scale-110 transition-all duration-300 cursor-pointer flex items-center justify-center text-textColor min-w-[44px] min-h-[44px] rounded-lg hover:bg-textColor/5"
                 >
                   <Mail className="w-5 h-5" />
                 </motion.button>
               </TooltipTrigger>
               <TooltipContent
-                onClick={handleMailCopy}
-                onPointerDown={() => {
+                onMouseEnter={handleMailMouseEnter}
+                onMouseLeave={handleMailMouseLeave}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
                   isMailActionRef.current = true;
                 }}
-                className="cursor-pointer select-none py-1.5 px-3 overflow-hidden"
+                className="select-none py-1.5 px-3 overflow-hidden pointer-events-auto"
                 title="Click to copy email"
               >
                 <AnimatePresence mode="wait" initial={false}>
@@ -518,6 +535,7 @@ export default function FooterSection() {
                       exit={{ opacity: 0, y: -3, scale: 0.96 }}
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="flex items-center gap-2 text-emerald-400 font-mono text-xs"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <motion.span
                         initial={{ scale: 0.4, rotate: -20 }}
@@ -538,8 +556,21 @@ export default function FooterSection() {
                       transition={{ duration: 0.18, ease: "easeOut" }}
                       className="flex items-center gap-2 font-mono text-xs"
                     >
-                      <span>{email}</span>
-                      <Copy className="w-3.5 h-3.5 opacity-70 hover:opacity-100 transition-opacity" />
+                      <span
+                        onClick={handleMailCopy}
+                        className="hover:underline cursor-pointer"
+                      >
+                        {email}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleMailCopy}
+                        aria-label="Copy email to clipboard"
+                        title="Copy email to clipboard"
+                        className="p-1 -mr-1 rounded hover:bg-white/20 active:scale-90 transition-all cursor-pointer flex items-center justify-center"
+                      >
+                        <Copy className="w-3.5 h-3.5 opacity-80 hover:opacity-100 transition-opacity" />
+                      </button>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -554,6 +585,6 @@ export default function FooterSection() {
           © {new Date().getFullYear()} Vivek. All rights reserved.
         </p>
       </div>
-    </motion.footer>
+    </footer>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "motion/react";
 import SkillsGrid, {
   SkillsGridProps,
 } from "@/components/skills-section/skillsGrid";
@@ -72,16 +71,12 @@ export default function SkillsSection() {
   };
 
   return (
-    <motion.section
-      className="my-10 p-4 relative z-10 max-w-6xl mx-auto"
+    <section
+      className="my-8 sm:my-10 px-4 sm:px-6 relative z-10 max-w-6xl mx-auto"
       id="skills"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-      transition={{ duration: 1 }}
     >
       {/* Design language header matching other sections */}
-      <div className="space-y-2 mb-10 text-center sm:text-left">
+      <div className="space-y-2 mb-6 sm:mb-10 text-center sm:text-left">
         <p className="font-mono text-xs uppercase tracking-widest text-primary font-semibold">
           {"// 02. Technical Competencies"}
         </p>
@@ -90,7 +85,7 @@ export default function SkillsSection() {
         </h2>
       </div>
 
-      <div className="mx-auto grid grid-cols-1 gap-3 md:grid-cols-4 md:grid-rows-2 md:gap-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 transform-gpu p-8 rounded-3xl shadow-xl">
+      <div className="mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 bg-foreground/5 dark:bg-foreground/10 backdrop-blur-md border border-textColor/10 dark:border-white/5 transform-gpu p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-xl">
         {Object.entries(skillsData).map(([key, skill]) => (
           <SkillsGrid
             key={key}
@@ -101,6 +96,6 @@ export default function SkillsSection() {
           />
         ))}
       </div>
-    </motion.section>
+    </section>
   );
 }

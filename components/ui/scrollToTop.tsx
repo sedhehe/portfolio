@@ -54,13 +54,13 @@ export default function ScrollToTop() {
           animate={{ opacity: [0, 1], scale: [0, 1] }}
           exit={{ opacity: 0, scale: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="fixed bottom-8 right-8 z-50"
+          className="fixed bottom-5 right-5 sm:bottom-8 sm:right-8 z-50"
         >
           <Tooltip>
             <TooltipTrigger asChild>
               <motion.button
                 onClick={scrollToTop}
-                className="w-12 h-12 rounded-full bg-primary text-background flex items-center justify-center hover:scale-110 transition-transform duration-300 shadow-lg"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-primary text-background flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-300 shadow-lg cursor-pointer"
                 aria-label="Scroll to top"
               >
                 <svg
