@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AsciiBackground } from "@/components/ascii-background/AsciiBackground";
 import HashScrollHandler from "@/components/ui/hashScrollHandler";
+import PageTransition from "@/components/ui/pageTransition";
 import "./globals.css";
 
 const sourceCodeProSans = Source_Code_Pro({
@@ -29,7 +30,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://sedhehe.vercel.app"),
-  title: "Vivek's Portfolio",
+  title: "Vivek - Software and AIML Engineer",
   description:
     "Portfolio of Vivek Rallapally (sedhehe) — Software engineer crafting intelligent systems, applied machine learning models, and high-performance web applications.",
   keywords: [
@@ -222,6 +223,7 @@ export default function RootLayout({
         className={`${sourceCodeProSans.variable} ${sourceCodeProMono.variable} font-sans antialiased text-textColor bg-background min-h-screen selection:bg-primary/20 selection:text-primary`}
       >
         <AsciiBackground />
+        <PageTransition />
         <HashScrollHandler />
         <Navbar />
         <main id="main-content" className="relative z-10 w-full overflow-x-hidden">

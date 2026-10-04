@@ -8,6 +8,33 @@ const KATAKANA = ["ゴ", "ド", "バ", "オ", "ア", "メ", "シ", "キ", "ム",
 const COIN_CHARS = ["$", "¢", "♦", "©", "O", "●"];
 const MANGA_WORDS = ["WHOOSH!", "SLASH!", "ゴゴゴゴ", "ズズズ", "BAM!"];
 
+// 404 Withering Foliage Glyphs & Palette
+const WITHERING_LEAF_GLYPHS = ["*", "~", "+", "✿", "❀", "🌸", "🍂", "░", "·", "S", "E", "D"];
+
+const getWitheringPalette = (isLight: boolean) => {
+  if (isLight) {
+    return [
+      "#e11d48", // rich rose crimson
+      "#dc2626", // rich ember red
+      "#ea580c", // deep autumn rust
+      "#d97706", // warm amber
+      "#b45309", // rich amber gold
+      "#db2777", // deep sakura petal
+      "#78716c"  // warm stone ash
+    ];
+  } else {
+    return [
+      "#f472b6", // luminous sakura pink
+      "#fb7185", // rose blossom
+      "#ff4d6d", // glowing crimson
+      "#ef4444", // ember red
+      "#f97316", // autumn rust orange
+      "#f59e0b", // luminous amber
+      "#fda4af"  // pale petal rose
+    ];
+  }
+};
+
 interface BranchPoint {
   x: number;
   y: number;
@@ -69,14 +96,16 @@ class FloatingText {
   life: number;
   isGiant?: boolean;
   angle?: number;
+  subText?: string;
 
-  constructor(x: number, y: number, text?: string, isGiant?: boolean, angle?: number) {
+  constructor(x: number, y: number, text?: string, isGiant?: boolean, angle?: number, subText?: string) {
     this.x = x;
     this.y = y;
     this.text = text || MANGA_WORDS[Math.floor(Math.random() * MANGA_WORDS.length)];
     this.life = 1.0;
     this.isGiant = isGiant;
     this.angle = angle;
+    this.subText = subText;
   }
 
   update() {
@@ -101,37 +130,85 @@ class FallingPetal {
   rotation: number;
   rotSpeed: number;
   isShiny: boolean;
+  isWithering: boolean;
+  life: number;
 
-  constructor(startX: number, startY: number, color1: string, color2: string, isLightMode = false) {
+  constructor(
+    startX: number,
+    startY: number,
+    color1: string,
+    color2: string,
+    isLightMode = false,
+    isWithering = false,
+    forcedChar?: string
+  ) {
     this.x = startX;
     this.y = startY;
-    this.char = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
-    if (this.char === "✿" || this.char === "❀" || this.char === "🌸") {
-      this.color = isLightMode ? "#e11d48" : "#f472b6"; // Luminous cherry blossom petal
-    } else {
-      this.color = Math.random() > 0.5 ? color1 : color2;
-    }
-    this.phase = Math.random() * Math.PI * 2;
-    this.speedY = Math.random() * 0.2 + 0.1; // Slowed down from 0.5 + 0.2
-    this.speedX = Math.random() * 0.8 + 0.4; // Slowed down from 2.0 + 1.5
-    this.scale = Math.random() * 0.8 + 0.8;
-    this.rotation = Math.random() * Math.PI * 2;
-    this.rotSpeed = (Math.random() - 0.5) * 0.02; // Slower rotation from 0.05
+    this.isWithering = isWithering;
+    this.life = 1.0;
 
-    // 2% chance to be a rare "Loot Drop" shiny petal
-    this.isShiny = Math.random() < 0.02;
+    if (isWithering) {
+      this.char = forcedChar || WITHERING_LEAF_GLYPHS[Math.floor(Math.random() * WITHERING_LEAF_GLYPHS.length)];
+      const palette = getWitheringPalette(isLightMode);
+      this.color = palette[Math.floor(Math.random() * palette.length)];
+      this.phase = Math.random() * Math.PI * 2;
+      // 404 Mode: Steady downward vertical gravity cascade
+      this.speedY = Math.random() * 1.3 + 0.85;
+      this.speedX = (Math.random() - 0.35) * 0.35; // Minimal lateral drift
+      this.scale = Math.random() * 0.8 + 0.7;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.04;
+      this.isShiny = Math.random() < 0.02;
+    } else {
+      this.char = forcedChar || LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
+      if (this.char === "✿" || this.char === "❀" || this.char === "🌸") {
+        this.color = isLightMode ? "#e11d48" : "#f472b6"; // Luminous cherry blossom petal
+      } else {
+        this.color = Math.random() > 0.5 ? color1 : color2;
+      }
+      this.phase = Math.random() * Math.PI * 2;
+      this.speedY = Math.random() * 0.2 + 0.1; // Slowed down from 0.5 + 0.2
+      this.speedX = Math.random() * 0.8 + 0.4; // Slowed down from 2.0 + 1.5
+      this.scale = Math.random() * 0.8 + 0.8;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotSpeed = (Math.random() - 0.5) * 0.02; // Slower rotation from 0.05
+      this.isShiny = Math.random() < 0.02;
+    }
   }
 
-  update(time: number, globalWind: number) {
-    // If Domain Expansion is active, wind is 0, freeze movement mostly
-    this.x += this.speedX * (globalWind > 0 ? 1 : 0) + globalWind + Math.sin(time * 0.001 + this.phase) * 1.2; // Sway reduced from 2.5
-    this.y += this.speedY * (globalWind > 0 ? 1 : 0.1) + Math.cos(time * 0.002 + this.phase) * 0.8; // Sway reduced from 1.5
-    this.rotation += this.rotSpeed;
+  update(time: number, globalWind: number, gustWind = 0) {
+    if (this.isWithering) {
+      // 404 Mode: Vertical cascade downward with steady gravity
+      this.y += this.speedY + Math.sin(time * 0.002 + this.phase) * 0.2;
+
+      // When gust triggers (e.g. hovering redirect button), surge with the gust
+      let windPush = Math.min(globalWind, 1.2) * 0.12;
+      if (gustWind > 0.05) {
+        windPush += gustWind * 3.8;
+        this.y += (Math.sin(time * 0.01 + this.phase) - 0.2) * gustWind * 0.8;
+        this.rotation += gustWind * 0.06;
+      }
+
+      this.x += this.speedX + windPush + Math.cos(time * 0.0015 + this.phase) * 0.45;
+      this.rotation += this.rotSpeed;
+
+      this.life -= 0.0005;
+      if (this.life < 0.35 && this.char !== "·" && this.char !== "░" && this.char !== "~") {
+        this.char = Math.random() < 0.5 ? "·" : "~";
+      }
+    } else {
+      // Normal Page: Signature ambient wind drift
+      const effectiveWind = globalWind + gustWind;
+      this.x += this.speedX * (effectiveWind > 0 ? 1 : 0) + effectiveWind + Math.sin(time * 0.001 + this.phase) * 1.2;
+      this.y += this.speedY * (effectiveWind > 0 ? 1 : 0.1) + Math.cos(time * 0.002 + this.phase) * 0.8;
+      this.rotation += this.rotSpeed;
+    }
   }
 }
 
 export function AsciiBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const flashOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -148,6 +225,7 @@ export function AsciiBackground() {
     let floatTexts: FloatingText[] = [];
 
     let dragPoints: { x: number; y: number }[] = [];
+    let dragScreenPoints: { x: number; y: number }[] = [];
     let slashEffect: {
       active: boolean;
       p1: { x: number; y: number } | null;
@@ -155,12 +233,19 @@ export function AsciiBackground() {
       progress: number;
       maxLife: number;
     } = { active: false, p1: null, p2: null, progress: 0, maxLife: 16 };
+    let flashTime = 0;
+    let flashFadeTimer: ReturnType<typeof setTimeout> | null = null;
+    let flashCleanTimer: ReturnType<typeof setTimeout> | null = null;
 
     let mouseX = -1000;
     let mouseY = -1000;
     let isDragging = false;
     let isDomainExpansion = false;
+    let is404Mode = false;
     let currentZoom = 1.0;
+    let justDraggedTime = 0;
+    let gustWind = 0;
+    let lastDecomposeTime = 0;
 
     let primaryColor = "#05acff";
     let secondaryColor = "#ade1ff";
@@ -273,13 +358,13 @@ export function AsciiBackground() {
       if (depth >= maxDepth - 2 || depth === 0) {
         const isEnd = depth === maxDepth;
         const isMobile = canvas.width < 768;
-        
+
         // Scale leaf count down on mobile and desktop to avoid lag and squishing
-        const numLeaves = isEnd 
-          ? (isMobile ? 25 : 50) 
+        const numLeaves = isEnd
+          ? (isMobile ? 25 : 50)
           : (depth === 0 ? (isMobile ? 15 : 30) : (isMobile ? 10 : 20));
         const spread = isEnd ? (isMobile ? 35 : 60) : (isMobile ? 15 : 30);
-        
+
         for (let i = 0; i < numLeaves; i++) {
           const r1 = Math.random();
           const r2 = Math.random();
@@ -288,11 +373,20 @@ export function AsciiBackground() {
           const cx = endX + Math.cos(theta) * radius;
           const cy = endY + Math.sin(theta) * radius;
 
+          let leafChar = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
+          let leafColor = Math.random() > 0.4 ? primaryColor : secondaryColor;
+
+          if (is404Mode) {
+            leafChar = WITHERING_LEAF_GLYPHS[Math.floor(Math.random() * WITHERING_LEAF_GLYPHS.length)];
+            const palette = getWitheringPalette(isLightMode);
+            leafColor = palette[Math.floor(Math.random() * palette.length)];
+          }
+
           canopy.push({
             baseX: cx,
             baseY: cy,
-            char: LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)],
-            color: Math.random() > 0.4 ? primaryColor : secondaryColor,
+            char: leafChar,
+            color: leafColor,
             phase: Math.random() * Math.PI * 2,
             size: isMobile ? 11 : 14 // slightly smaller leaves for high pixel density mobile displays
           });
@@ -345,15 +439,199 @@ export function AsciiBackground() {
       const isMobile = canvas.width < 768;
       const startX = -20;
       const startY = canvas.height * (isMobile ? 0.72 : 0.65); // lower down on mobile to clear text
-      const initialLength = isMobile 
-        ? Math.min(canvas.width * 0.45, 185) 
-        : Math.min(canvas.width * 0.2, 280); 
+      const initialLength = isMobile
+        ? Math.min(canvas.width * 0.45, 185)
+        : Math.min(canvas.width * 0.2, 280);
       const initialAngle = -0.3;
       const initialWidth = isMobile ? 7 : 9;
 
-      // depth 3 on mobile (much better performance and density), depth 4 on desktop
       buildTree(startX, startY, initialLength, initialAngle, 0, isMobile ? 3 : 4, initialWidth);
       buildTree(startX, startY + 20, initialLength * 0.5, 0.15, 0, isMobile ? 2 : 3, initialWidth * 0.7);
+
+      // Pre-seed falling leaves in 404 mode so user immediately sees vertical cascade
+      if (is404Mode && canopy.length > 0) {
+        for (let i = 0; i < 28; i++) {
+          const source = canopy[Math.floor(Math.random() * canopy.length)];
+          const petal = new FallingPetal(
+            source.baseX + (Math.random() - 0.2) * (canvas.width * 0.45),
+            Math.random() * canvas.height,
+            primaryColor,
+            secondaryColor,
+            isLightMode,
+            true,
+            source.char
+          );
+          fallingPetals.push(petal);
+        }
+      }
+    };
+
+    const triggerDomainBlockedError = (x?: number, y?: number) => {
+      const posX = Math.max(canvas.width * 0.2, Math.min(canvas.width * 0.8, x ?? canvas.width * 0.32));
+      const posY = Math.max(90, Math.min(canvas.height - 100, y ?? canvas.height * 0.38));
+      floatTexts.push(
+        new FloatingText(posX, posY, "ERR // DOMAIN_BLOCKED", true, 0, "[ ROUTE_SEVERED: 0x404 ]")
+      );
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tree:domain_blocked", { detail: { x: posX, y: posY } }));
+      }
+    };
+
+    const triggerSlashBlockedError = (x?: number, y?: number) => {
+      const posX = Math.max(canvas.width * 0.15, Math.min(canvas.width * 0.55, x ?? canvas.width * 0.35));
+      const posY = Math.max(90, Math.min(canvas.height - 100, y ?? canvas.height * 0.42));
+      floatTexts.push(
+        new FloatingText(posX, posY, "ERR // 0x404_SEVERED", true, 0, "[ SLASH_RESTRICTED ]")
+      );
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("tree:slash_blocked", { detail: { x: posX, y: posY } }));
+      }
+    };
+
+    const handleTreeGust = (e: Event) => {
+      const ce = e as CustomEvent<{ strength?: number; petals?: number }>;
+      const strength = ce.detail?.strength ?? 3.2;
+      const numPetals = ce.detail?.petals ?? 18;
+      gustWind = Math.max(gustWind, strength);
+
+      // Spawn gust petals from canopy
+      if (canopy.length > 0) {
+        for (let i = 0; i < numPetals; i++) {
+          const source = canopy[Math.floor(Math.random() * canopy.length)];
+          fallingPetals.push(
+            new FallingPetal(
+              source.baseX,
+              source.baseY,
+              primaryColor,
+              secondaryColor,
+              isLightMode,
+              is404Mode,
+              source.char
+            )
+          );
+        }
+      }
+    };
+
+    const clipRectWithHalfPlane = (
+      p1: { x: number; y: number },
+      p2: { x: number; y: number },
+      W: number,
+      H: number
+    ): { x: number; y: number }[] | null => {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      if (Math.hypot(dx, dy) < 1) return null;
+
+      // Normal vector pointing to the half-plane on one side of cut vector (p1 -> p2)
+      const A = -dy;
+      const B = dx;
+      const C = -(A * p1.x + B * p1.y);
+
+      const isInside = (pt: { x: number; y: number }) => A * pt.x + B * pt.y + C >= -1e-4;
+
+      const lineIntersection = (cp1: { x: number; y: number }, cp2: { x: number; y: number }) => {
+        const d1 = A * cp1.x + B * cp1.y + C;
+        const d2 = A * cp2.x + B * cp2.y + C;
+        const t = d1 / (d1 - d2);
+        return {
+          x: cp1.x + t * (cp2.x - cp1.x),
+          y: cp1.y + t * (cp2.y - cp1.y)
+        };
+      };
+
+      const subject = [
+        { x: 0, y: 0 },
+        { x: W, y: 0 },
+        { x: W, y: H },
+        { x: 0, y: H }
+      ];
+
+      const output: { x: number; y: number }[] = [];
+      for (let i = 0; i < subject.length; i++) {
+        const cur = subject[i];
+        const prev = subject[(i + subject.length - 1) % subject.length];
+
+        if (isInside(cur)) {
+          if (!isInside(prev)) {
+            output.push(lineIntersection(prev, cur));
+          }
+          output.push(cur);
+        } else if (isInside(prev)) {
+          output.push(lineIntersection(prev, cur));
+        }
+      }
+
+      // Filter duplicate vertices and constrain coordinates strictly to [0, W] x [0, H]
+      const clean: { x: number; y: number }[] = [];
+      for (const pt of output) {
+        if (!clean.some(c => Math.hypot(c.x - pt.x, c.y - pt.y) < 1)) {
+          clean.push({
+            x: Math.max(0, Math.min(W, Math.round(pt.x))),
+            y: Math.max(0, Math.min(H, Math.round(pt.y)))
+          });
+        }
+      }
+
+      return clean.length >= 3 ? clean : null;
+    };
+
+    const triggerHalfPlaneSlash = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const overlay = flashOverlayRef.current;
+      if (!overlay) return;
+
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const poly = clipRectWithHalfPlane(p1, p2, W, H);
+      if (!poly || poly.length < 3) return;
+
+      const clipStr = `polygon(${poly.map(pt => `${pt.x}px ${pt.y}px`).join(", ")})`;
+      const filterValue = "invert(100%) grayscale(100%) contrast(150%)";
+
+      if (flashFadeTimer) clearTimeout(flashFadeTimer);
+      if (flashCleanTimer) clearTimeout(flashCleanTimer);
+
+      overlay.style.transition = "none";
+      overlay.style.clipPath = clipStr;
+      overlay.style.backdropFilter = filterValue;
+      overlay.style.setProperty("-webkit-backdrop-filter", filterValue);
+      overlay.style.opacity = "1";
+
+      flashFadeTimer = setTimeout(() => {
+        overlay.style.transition = "opacity 0.35s cubic-bezier(0.1, 0.8, 0.25, 1)";
+        overlay.style.opacity = "0";
+      }, 180);
+
+      flashCleanTimer = setTimeout(() => {
+        overlay.style.clipPath = "none";
+        overlay.style.backdropFilter = "none";
+        overlay.style.setProperty("-webkit-backdrop-filter", "none");
+      }, 550);
+    };
+
+    const handleTreeSlash = () => {
+      if (is404Mode) {
+        triggerSlashBlockedError(canvas.width / 2, canvas.height / 2);
+        return;
+      }
+      const p1 = { x: canvas.width * 0.15, y: canvas.height * 0.25 };
+      const p2 = { x: canvas.width * 0.85, y: canvas.height * 0.75 };
+      slashEffect = {
+        active: true,
+        p1: p1,
+        p2: p2,
+        progress: 0,
+        maxLife: 20
+      };
+      flashTime = 8;
+      triggerHalfPlaneSlash(
+        { x: window.innerWidth * 0.15, y: window.innerHeight * 0.25 },
+        { x: window.innerWidth * 0.85, y: window.innerHeight * 0.75 }
+      );
+      floatTexts.push(
+        new FloatingText(canvas.width / 2, canvas.height / 2, "斬!", true, -0.35)
+      );
     };
 
     const startTime = Date.now();
@@ -374,7 +652,12 @@ export function AsciiBackground() {
       }
 
       // Physics Variables (Slowed down leaf wind sweep)
-      let globalWind = Math.sin(time * 0.0002) * 0.5 + 0.5; // Reduced from 2.0 + 2.0
+      let globalWind = Math.sin(time * 0.0002) * 0.5 + 0.5;
+
+      if (gustWind > 0) {
+        gustWind *= 0.93;
+        if (gustWind < 0.02) gustWind = 0;
+      }
 
       if (isDomainExpansion) {
         globalWind = 0; // Wind freezes
@@ -409,10 +692,11 @@ export function AsciiBackground() {
 
       // Draw Drag Path Line
       if (isDragging && dragPoints.length > 1) {
-        ctx.strokeStyle = primaryColor;
+        const dragLineColor = is404Mode ? "#e11d48" : primaryColor;
+        ctx.strokeStyle = dragLineColor;
         ctx.lineWidth = 2; // Thin drag trail line
         ctx.shadowBlur = 10;
-        ctx.shadowColor = primaryColor;
+        ctx.shadowColor = dragLineColor;
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         ctx.beginPath();
@@ -448,10 +732,10 @@ export function AsciiBackground() {
 
       // Draw Branches
       ctx.globalAlpha = isDomainExpansion ? 0.8 : (isLightMode ? 0.75 : 0.35); // Flash solid during domain; increase opacity in light mode for visibility
-      const branchColor = isDomainExpansion ? "#ffffff" : tertiaryColor;
+      const branchColor = isDomainExpansion ? "#ffffff" : is404Mode ? (isLightMode ? "#475569" : "#334155") : tertiaryColor;
       const branchFont = "12px monospace";
       branches.forEach(b => {
-        const swayX = Math.sin(time * 0.001 + b.depth) * b.depth * 0.5;
+        const swayX = Math.sin(time * 0.001 + b.depth) * b.depth * 0.5 + (gustWind * (b.depth + 1) * 0.6);
         const swayY = Math.cos(time * 0.001 + b.depth) * b.depth * 0.2;
 
         const bx = b.baseX + swayX;
@@ -466,7 +750,8 @@ export function AsciiBackground() {
       ctx.globalAlpha = isDomainExpansion ? 0.9 : (isLightMode ? 0.85 : 0.55); // increase opacity in light mode for leaf visibility
       const canopyFont = 'bold 14px "Source Code Pro", monospace';
       canopy.forEach((c, idx) => {
-        const flutterX = Math.sin(time * 0.002 + c.phase) * 2;
+        const gustSway = gustWind * 4.5;
+        const flutterX = Math.sin(time * 0.002 + c.phase) * 2 + gustSway;
         const flutterY = Math.cos(time * 0.0015 + c.phase) * 2;
         const finalX = c.baseX + flutterX;
         const finalY = c.baseY + flutterY;
@@ -497,33 +782,73 @@ export function AsciiBackground() {
         ctx.drawImage(glyph, drawX + offset.x - glyph.width / 2, drawY + offset.y - glyph.height / 2);
       });
 
-      // Draw Slash Line Cut
+      // Draw Slash Line Cut across the cut axis
       if (slashEffect.active && slashEffect.p1 && slashEffect.p2) {
         const lifeRatio = slashEffect.progress / slashEffect.maxLife;
-        ctx.strokeStyle = isLightMode ? primaryColor : "#ffffff";
-        ctx.lineWidth = 3 * (1 - lifeRatio); // Thin slash cut line
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = primaryColor;
+        const dx = slashEffect.p2.x - slashEffect.p1.x;
+        const dy = slashEffect.p2.y - slashEffect.p1.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len;
+        const uy = dy / len;
+        const midX = (slashEffect.p1.x + slashEffect.p2.x) / 2;
+        const midY = (slashEffect.p1.y + slashEffect.p2.y) / 2;
+        const ext = Math.max(canvas.width, canvas.height) * 1.5;
+
+        ctx.strokeStyle = is404Mode ? "#e11d48" : (isLightMode ? primaryColor : "#ffffff");
+        ctx.lineWidth = 3.5 * (1 - lifeRatio);
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = is404Mode ? "#f43f5e" : primaryColor;
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(slashEffect.p1.x, slashEffect.p1.y);
-        ctx.lineTo(slashEffect.p2.x, slashEffect.p2.y);
+        ctx.moveTo(midX - ux * ext, midY - uy * ext);
+        ctx.lineTo(midX + ux * ext, midY + uy * ext);
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
 
       // Spawn Petals
-      const spawnRate = globalWind > 1.0 ? 0.6 : 0.3;
+      const spawnRate = is404Mode ? 0.45 : (globalWind > 1.0 ? 0.6 : 0.3);
       if (!isDomainExpansion && Math.random() < spawnRate && canopy.length > 0) {
         const source = canopy[Math.floor(Math.random() * canopy.length)];
-        fallingPetals.push(new FallingPetal(source.baseX, source.baseY, primaryColor, secondaryColor, isLightMode));
+        fallingPetals.push(
+          new FallingPetal(
+            source.baseX,
+            source.baseY,
+            primaryColor,
+            secondaryColor,
+            isLightMode,
+            is404Mode,
+            source.char
+          )
+        );
+      }
+
+      // In 404 mode, canopy leaves continuously detach and fall vertically
+      if (is404Mode && !isDomainExpansion && canopy.length > 0) {
+        if (time - lastDecomposeTime > 110) {
+          lastDecomposeTime = time;
+          const leaf = canopy[Math.floor(Math.random() * canopy.length)];
+          if (leaf) {
+            fallingPetals.push(
+              new FallingPetal(
+                leaf.baseX,
+                leaf.baseY,
+                primaryColor,
+                secondaryColor,
+                isLightMode,
+                true,
+                leaf.char
+              )
+            );
+          }
+        }
       }
 
       // Update Falling Petals & Loot Drops
       ctx.globalAlpha = isDomainExpansion ? 0.8 : (isLightMode ? 0.75 : 0.5); // increase opacity in light mode
       for (let i = fallingPetals.length - 1; i >= 0; i--) {
         const p = fallingPetals[i];
-        p.update(time, globalWind);
+        p.update(time, globalWind, gustWind);
 
         const dx = p.x - canvasMouseX;
         const dy = p.y - canvasMouseY;
@@ -567,7 +892,7 @@ export function AsciiBackground() {
         ctx.drawImage(glyph, -glyph.width / 2, -glyph.height / 2);
         ctx.restore();
 
-        if (p.y > canvas.height + 50 || p.x > canvas.width + 50) {
+        if (p.y > canvas.height + 50 || p.x > canvas.width + 50 || (p.isWithering && p.life <= 0)) {
           fallingPetals.splice(i, 1);
         }
       }
@@ -606,13 +931,19 @@ export function AsciiBackground() {
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
 
-          // Primary color outline for theme compliance
-          ctx.strokeStyle = primaryColor;
+          // Outline for theme compliance (No blue in 404 mode)
+          ctx.strokeStyle = is404Mode ? "#e11d48" : primaryColor;
           ctx.lineWidth = 8;
           ctx.strokeText(ft.text, shakeX, shakeY);
           ctx.fillText(ft.text, shakeX, shakeY);
+
+          if (ft.subText) {
+            ctx.font = `bold 18px monospace`;
+            ctx.fillStyle = is404Mode ? "#fca5a5" : "#fda4af";
+            ctx.fillText(ft.subText, shakeX, shakeY + 54);
+          }
         } else {
-          ctx.fillStyle = textColor;
+          ctx.fillStyle = is404Mode ? "#f59e0b" : textColor;
           ctx.font = `bold 24px monospace`;
           ctx.fillText(ft.text, ft.x, ft.y);
         }
@@ -621,7 +952,33 @@ export function AsciiBackground() {
         if (ft.life <= 0) floatTexts.splice(i, 1);
       }
 
-      ctx.restore(); // Restore canvas context after drawing everything
+      // Invert half plane divided by slash line (dramatic impact effect)
+      if (flashTime > 0 && slashEffect.p1 && slashEffect.p2) {
+        const canvasPoly = clipRectWithHalfPlane(
+          slashEffect.p1,
+          slashEffect.p2,
+          canvas.width,
+          canvas.height
+        );
+        if (canvasPoly && canvasPoly.length >= 3) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(canvasPoly[0].x, canvasPoly[0].y);
+          for (let pi = 1; pi < canvasPoly.length; pi++) {
+            ctx.lineTo(canvasPoly[pi].x, canvasPoly[pi].y);
+          }
+          ctx.closePath();
+
+          // Apply difference composite mode to mathematically invert pixels
+          ctx.globalCompositeOperation = "difference";
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+          ctx.restore();
+        }
+        flashTime--;
+      }
+
+      ctx.restore(); // Restore canvas context after drawing everything (including bisection flash)
 
       animationFrameId = requestAnimationFrame(animate);
     };
@@ -639,6 +996,8 @@ export function AsciiBackground() {
           const canvasY = centerY + (mouseY - centerY) / currentZoom;
           dragPoints.push({ x: canvasX, y: canvasY });
           if (dragPoints.length > 50) dragPoints.shift(); // Limit path size
+          dragScreenPoints.push({ x: e.clientX, y: e.clientY });
+          if (dragScreenPoints.length > 50) dragScreenPoints.shift();
         }
       }
     };
@@ -647,6 +1006,7 @@ export function AsciiBackground() {
       const target = e.target as HTMLElement | null;
       if (
         target &&
+        typeof target.closest === "function" &&
         (target.closest(
           "button, a, input, textarea, select, [role='button'], [role='link']"
         ) ||
@@ -664,6 +1024,14 @@ export function AsciiBackground() {
       mouseY = e.clientY;
       isDragging = false;
       dragPoints = [];
+      dragScreenPoints = [{ x: e.clientX, y: e.clientY }];
+
+      // Temporarily disable text selection highlights globally during active mouse hold/drag
+      const body = document.body;
+      if (body) {
+        body.style.userSelect = "none";
+        body.style.webkitUserSelect = "none";
+      }
 
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
@@ -673,39 +1041,64 @@ export function AsciiBackground() {
     };
 
     const handleMouseUp = () => {
+      // Re-enable text selection highlights on mouse release
+      const body = document.body;
+      const root = document.documentElement;
+      if (body) {
+        body.style.userSelect = "";
+        body.style.webkitUserSelect = "";
+      }
+
+      if (isDragging) {
+        justDraggedTime = Date.now();
+      }
+
       if (isDragging && dragPoints.length >= 2) {
         const p1 = dragPoints[0];
         const p2 = dragPoints[dragPoints.length - 1];
         const slashDist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
         if (slashDist > 40) {
-          // Trigger visual slash effect
-          slashEffect = {
-            active: true,
-            p1: p1,
-            p2: p2,
-            progress: 0,
-            maxLife: 16
-          };
-
-          // Spawn giant manga slash kanji/effects at the center of the slash path
           const midX = (p1.x + p2.x) / 2;
           const midY = (p1.y + p2.y) / 2;
-          const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
 
-          floatTexts.push(new FloatingText(
-            midX,
-            midY,
-            ["斬", "ザシュッ", "SLASH!", "ズバァッ!"][Math.floor(Math.random() * 4)],
-            true,
-            angle
-          ));
+          if (is404Mode) {
+            // In 404 mode: Slash effect MUST NOT happen, trigger error state
+            triggerSlashBlockedError(midX, midY);
+          } else {
+            // Trigger visual slash effect
+            slashEffect = {
+              active: true,
+              p1: p1,
+              p2: p2,
+              progress: 0,
+              maxLife: 20
+            };
+            flashTime = 8;
+
+            // Trigger dramatic one-side-of-cut impact flash on DOM overlay
+            const screenP1 = dragScreenPoints[0] || p1;
+            const screenP2 = dragScreenPoints[dragScreenPoints.length - 1] || p2;
+            triggerHalfPlaneSlash(screenP1, screenP2);
+
+            // Spawn giant manga slash kanji/effects at the center of the slash path
+            const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+            floatTexts.push(new FloatingText(
+              midX,
+              midY,
+              ["斬", "ザシュッ", "SLASH!", "ズバァッ!"][Math.floor(Math.random() * 4)],
+              true,
+              angle
+            ));
+          }
         }
       }
 
       isPointerDown = false;
       isDragging = false;
       dragPoints = [];
+      dragScreenPoints = [];
     };
 
     const toggleDomainStyle = (active: boolean) => {
@@ -735,11 +1128,13 @@ export function AsciiBackground() {
 
     const handleMouseClick = (e: MouseEvent) => {
       if (e.defaultPrevented) return;
+      if (Date.now() - justDraggedTime < 350) return;
 
       // Prevent clicks on UI controls, sections, cards, links, or buttons from triggering Domain Expansion
       const target = e.target as HTMLElement | null;
       if (
         target &&
+        typeof target.closest === "function" &&
         (target.closest(
           "button, a, input, textarea, select, [role='button'], [role='link'], [data-interactive], #experience, #projects, #about, #skills, #home, nav, footer, header"
         ) ||
@@ -755,6 +1150,10 @@ export function AsciiBackground() {
       const inCanopyBounds = mx > 0 && mx < window.innerWidth * 0.4 && my > window.innerHeight * 0.2 && my < window.innerHeight * 0.8;
 
       if (inCanopyBounds) {
+        if (is404Mode) {
+          triggerDomainBlockedError(mx, my);
+          return;
+        }
         isDomainExpansion = !isDomainExpansion; // Toggle it
       } else {
         isDomainExpansion = false; // Clicking anywhere else turns it off
@@ -764,6 +1163,20 @@ export function AsciiBackground() {
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length > 0) {
+        const target = e.target as HTMLElement | null;
+        if (
+          target &&
+          typeof target.closest === "function" &&
+          (target.closest(
+            "button, a, input, textarea, select, [role='button'], [role='link']"
+          ) ||
+            target.tagName === "BUTTON" ||
+            target.tagName === "A" ||
+            target.tagName === "INPUT")
+        ) {
+          return;
+        }
+
         const touch = e.touches[0];
         mouseX = touch.clientX;
         mouseY = touch.clientY;
@@ -772,6 +1185,7 @@ export function AsciiBackground() {
         isPointerDown = true;
         isDragging = false;
         dragPoints = [];
+        dragScreenPoints = [{ x: touch.clientX, y: touch.clientY }];
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -780,7 +1194,7 @@ export function AsciiBackground() {
         dragPoints.push({ x: canvasX, y: canvasY });
       }
     };
-    
+
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
         const touch = e.touches[0];
@@ -796,6 +1210,8 @@ export function AsciiBackground() {
             const canvasY = centerY + (mouseY - centerY) / currentZoom;
             dragPoints.push({ x: canvasX, y: canvasY });
             if (dragPoints.length > 50) dragPoints.shift();
+            dragScreenPoints.push({ x: touch.clientX, y: touch.clientY });
+            if (dragScreenPoints.length > 50) dragScreenPoints.shift();
           }
         }
       }
@@ -811,6 +1227,23 @@ export function AsciiBackground() {
         isPointerDown = false;
         isDragging = false;
         dragPoints = [];
+        dragScreenPoints = [];
+      }
+    };
+
+    const handle404Mode = (e: Event) => {
+      const ce = e as CustomEvent<{ active?: boolean }>;
+      const nextMode = ce.detail?.active ?? true;
+      if (is404Mode !== nextMode) {
+        is404Mode = nextMode;
+        init();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isDomainExpansion) {
+        isDomainExpansion = false;
+        toggleDomainStyle(false);
       }
     };
 
@@ -820,50 +1253,87 @@ export function AsciiBackground() {
     };
     mediaQuery.addEventListener("change", handleThemeChange);
 
-    window.addEventListener('resize', init);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('click', handleMouseClick);
-    
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener("resize", init);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("click", handleMouseClick);
+    window.addEventListener("keydown", handleKeyDown);
+
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("tree:gust", handleTreeGust);
+    window.addEventListener("tree:slash", handleTreeSlash);
+    window.addEventListener("tree:404_mode", handle404Mode);
+
+    const checkIs404 = () => {
+      if (typeof window === "undefined") return false;
+      const path = window.location.pathname;
+      if (path.includes("404") || path.includes("not-found")) return true;
+      if (document.title.includes("404")) return true;
+      if (document.querySelector("[data-page-404]")) return true;
+      return false;
+    };
+
+    if (checkIs404()) {
+      is404Mode = true;
+    }
 
     init();
     animate();
 
     return () => {
       mediaQuery.removeEventListener("change", handleThemeChange);
-      window.removeEventListener('resize', init);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('click', handleMouseClick);
-      
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-      
+      window.removeEventListener("resize", init);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("click", handleMouseClick);
+      window.removeEventListener("keydown", handleKeyDown);
+
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("tree:gust", handleTreeGust);
+      window.removeEventListener("tree:slash", handleTreeSlash);
+      window.removeEventListener("tree:404_mode", handle404Mode);
+
+      if (flashFadeTimer) clearTimeout(flashFadeTimer);
+      if (flashCleanTimer) clearTimeout(flashCleanTimer);
       cancelAnimationFrame(animationFrameId);
 
       // Reset body styles and domain theme overrides to prevent leaks
+      const root = document.documentElement;
       const body = document.body;
+      if (root) {
+        root.style.filter = "";
+        root.style.transition = "";
+      }
       if (body) {
         body.style.filter = "";
         body.style.transition = "";
+        body.style.userSelect = "";
+        body.style.webkitUserSelect = "";
       }
       toggleDomainStyle(false);
     };
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 pointer-events-none -z-10 opacity-90"
-      style={{ willChange: "transform", transform: "translate3d(0, 0, 0)" }}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none -z-10 opacity-90"
+        style={{ willChange: "transform", transform: "translate3d(0, 0, 0)" }}
+      />
+      <div
+        ref={flashOverlayRef}
+        className="fixed inset-0 pointer-events-none z-[9990] transition-opacity duration-300 opacity-0"
+        style={{ willChange: "clip-path, opacity, filter" }}
+      />
+    </>
   );
 }

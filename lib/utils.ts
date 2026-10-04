@@ -46,6 +46,10 @@ export function scrollToSection(hashOrId: string) {
 
   const id = hashOrId.replace(/^#/, "");
   if (!id || id === "home") {
+    if (window.location.pathname !== "/") {
+      window.location.href = "/";
+      return;
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (window.location.hash !== "" && window.location.hash !== "#home") {
       window.history.pushState(null, "", "#home");
@@ -54,7 +58,12 @@ export function scrollToSection(hashOrId: string) {
   }
 
   const element = document.getElementById(id);
-  if (!element) return;
+  if (!element) {
+    if (window.location.pathname !== "/") {
+      window.location.href = `/#${id}`;
+    }
+    return;
+  }
 
   const rect = element.getBoundingClientRect();
   const elementHeight = rect.height;
