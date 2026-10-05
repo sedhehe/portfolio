@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, FolderGit2, Briefcase, User, Cpu } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 interface QuoteVariant {
   title: string;
