@@ -135,25 +135,9 @@ export default function NotFound() {
       <title>404: Not Found</title>
 
       {/* Clean Terminal Status Header */}
-      <div className="w-full flex items-center justify-between py-2 text-xs font-mono text-muted-textColor">
-        <div className="flex items-center gap-2">
-          <span
-            className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-              blockedStatus ? "bg-red-500 animate-ping" : "bg-rose-500 animate-pulse"
-            }`}
-          />
-          <span
-            className={`transition-colors duration-200 ${
-              blockedStatus
-                ? "text-red-600 dark:text-red-400 font-bold tracking-wider"
-                : "text-muted-textColor"
-            }`}
-          >
-            {blockedStatus || "ERROR // 404-0xDEADLIFE(not_found)"}
-          </span>
-        </div>
-        <span className="opacity-60 hidden sm:inline">err_route</span>
-      </div>
+      <p className="font-mono text-xs uppercase tracking-widest text-destructive font-semibold mb-5">
+        {"// 404. Route Not Found"}
+      </p>
 
       {/* Main Asymmetrical Stage */}
       <div className="my-auto py-8 sm:py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
@@ -195,17 +179,12 @@ export default function NotFound() {
               onMouseEnter={triggerRustle}
               onTouchStart={triggerRustle}
               onFocus={triggerRustle}
-              className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-3.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-500 to-amber-600 text-white font-mono text-sm font-semibold tracking-wide overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(225,29,72,0.35)] transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 cursor-pointer"
+              className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-3.5 px-7 py-3.5 rounded-xl bg-textColor/[0.06] hover:bg-textColor/[0.15] text-textColor  border border-textColor/20 hover:border-rose-500 text-base font-semibold font-mono tracking-wide overflow-hidden shadow-sm hover:shadow-[0_0_24px_rgba(225,29,72,0.35)] transition-all duration-300 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 cursor-pointer"
             >
-              {/* Specular sheen beam sweep on hover (no layout shift) */}
-              <span
-                aria-hidden="true"
-                className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none motion-reduce:hidden"
-              />
 
               {/* Directional Icon with subtle retreat slide */}
               <span className="relative z-10 w-6 h-6 rounded-lg bg-black/15 flex items-center justify-center border border-white/15 transition-transform duration-200 ease-out group-hover:-translate-x-1 motion-reduce:transform-none">
-                <ArrowLeft className="w-3.5 h-3.5 text-white/95 transition-colors" />
+                <ArrowLeft className="w-3.5 h-3.5 text-textColor/95 group-hover:text-rose-500 transition-colors" />
               </span>
 
               {/* Text with slight breath on hover */}
@@ -214,83 +193,7 @@ export default function NotFound() {
               </span>
             </Link>
           </div>
-
-          {/* Clean Quick Teleport Terminal Chips */}
-          <div className="pt-5 border-t border-border/40 w-full">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-mono text-muted-textColor flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500/70" />
-                teleport to section:
-              </span>
-              <span className="text-[10px] font-mono text-muted-textColor/50 tracking-wider hidden sm:inline">
-                [nav_jump]
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              {[
-                {
-                  href: "/#projects",
-                  label: "projects",
-                  icon: FolderGit2,
-                  iconHover: "group-hover:-translate-y-0.5",
-                },
-                {
-                  href: "/#experience",
-                  label: "experience",
-                  icon: Briefcase,
-                  iconHover: "group-hover:-rotate-6",
-                },
-                {
-                  href: "/#skills",
-                  label: "skills",
-                  icon: Cpu,
-                  iconHover: "group-hover:rotate-45",
-                },
-                {
-                  href: "/#about",
-                  label: "about",
-                  icon: User,
-                  iconHover: "group-hover:scale-105",
-                },
-              ].map(({ href, label, icon: Icon, iconHover }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onMouseEnter={triggerRustle}
-                  className="group relative inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border/70 bg-card/50 hover:bg-rose-500/10 hover:border-rose-500/40 text-xs font-mono text-muted-textColor hover:text-textColor transition-all duration-200 overflow-hidden active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
-                >
-                  {/* Glowing left edge indicator that expands on hover */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-rose-500 rounded-r-full transition-all duration-200 group-hover:h-3.5 group-hover:shadow-[0_0_8px_#f43f5e]"
-                  />
-
-                  {/* Contextual semantic icon */}
-                  <Icon
-                    className={`w-3.5 h-3.5 text-rose-500/80 group-hover:text-rose-400 transition-all duration-200 motion-reduce:transform-none ${iconHover}`}
-                  />
-
-                  {/* Label */}
-                  <span>{label}</span>
-
-                  {/* Terminal chevron */}
-                  <span
-                    aria-hidden="true"
-                    className="text-[10px] text-muted-textColor/40 group-hover:text-rose-400/80 transition-colors font-mono"
-                  >
-                    /
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
-      </div>
-
-      {/* Minimal Footer Status */}
-      <div className="w-full pt-4 text-xs font-mono text-muted-textColor/60 flex items-center justify-between">
-        <span>terminal: dead</span>
-        <span>tree: withering</span>
       </div>
     </section>
   );
