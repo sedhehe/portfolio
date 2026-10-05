@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 /**
  * Global Error Boundary for Next.js App Router
@@ -36,12 +37,12 @@ export default function GlobalError({
             >
               RE-INITIALIZE ENVIRONMENT
             </button>
-            <a
+            <Link
               href="/"
               className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-medium tracking-wider transition-colors"
             >
               RETURN TO ROOT
-            </a>
+            </Link>
           </div>
         </div>
       </body>

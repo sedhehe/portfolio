@@ -1043,7 +1043,6 @@ export function AsciiBackground() {
     const handleMouseUp = () => {
       // Re-enable text selection highlights on mouse release
       const body = document.body;
-      const root = document.documentElement;
       if (body) {
         body.style.userSelect = "";
         body.style.webkitUserSelect = "";
