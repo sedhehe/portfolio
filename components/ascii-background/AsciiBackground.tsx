@@ -51,9 +51,15 @@ interface CanopyPoint {
   baseY: number;
   char: string;
   color: string;
+  autumnChar: string;
+  autumnColor: string;
   phase: number;
   size: number;
+  colorVariant: number;
+  isFlower: boolean;
+  autumnIndex: number;
 }
+
 
 class CoinParticle {
   x: number;
@@ -206,6 +212,242 @@ class FallingPetal {
   }
 }
 
+interface GlobalTreeBranch {
+  baseX: number;
+  baseY: number;
+  char: string;
+  depth: number;
+  size: number;
+}
+
+interface GlobalTreeCanopy {
+  baseX: number;
+  baseY: number;
+  char: string;
+  autumnChar: string;
+  autumnIndex: number;
+  phase: number;
+  size: number;
+  colorVariant: number;
+  isFlower: boolean;
+}
+
+interface GlobalTreeData {
+  seed: number;
+  width: number;
+  height: number;
+  branches: GlobalTreeBranch[];
+  canopy: GlobalTreeCanopy[];
+}
+
+const SESSION_TREE_KEY = "portfolio_ascii_tree_v2";
+const SESSION_SEED_KEY = "portfolio_ascii_tree_seed";
+
+// Module-level in-memory cache surviving client component remounts across page navigations
+let globalSessionTree: GlobalTreeData | null = null;
+
+function createPRNG(seed: number) {
+  let s = seed | 0;
+  return function next(): number {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function getOrCreateSessionSeed(): number {
+  if (typeof window === "undefined") return 1337;
+  try {
+    const existing = window.sessionStorage?.getItem(SESSION_SEED_KEY);
+    if (existing) {
+      const parsed = parseInt(existing, 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+    const newSeed = Math.floor(Math.random() * 2147483640) + 1;
+    window.sessionStorage?.setItem(SESSION_SEED_KEY, newSeed.toString());
+    return newSeed;
+  } catch {
+    return 1337;
+  }
+}
+
+function loadGlobalTree(): GlobalTreeData | null {
+  if (globalSessionTree) return globalSessionTree;
+  if (typeof window !== "undefined") {
+    const win = window as unknown as { __GLOBAL_ASCII_TREE__?: GlobalTreeData };
+    if (win.__GLOBAL_ASCII_TREE__) {
+      globalSessionTree = win.__GLOBAL_ASCII_TREE__;
+      return globalSessionTree;
+    }
+    try {
+      const raw = window.sessionStorage?.getItem(SESSION_TREE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as GlobalTreeData;
+        if (
+          parsed &&
+          Array.isArray(parsed.branches) &&
+          Array.isArray(parsed.canopy) &&
+          parsed.branches.length > 0
+        ) {
+          globalSessionTree = parsed;
+          win.__GLOBAL_ASCII_TREE__ = parsed;
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
+function saveGlobalTree(tree: GlobalTreeData): void {
+  globalSessionTree = tree;
+  if (typeof window !== "undefined") {
+    const win = window as unknown as { __GLOBAL_ASCII_TREE__?: GlobalTreeData };
+    win.__GLOBAL_ASCII_TREE__ = tree;
+    try {
+      window.sessionStorage?.setItem(SESSION_TREE_KEY, JSON.stringify(tree));
+    } catch {
+      // ignore
+    }
+  }
+}
+
+function generateDeterministicTree(
+  width: number,
+  height: number,
+  seed: number
+): GlobalTreeData {
+  const prng = createPRNG(seed);
+  const isMobile = width < 768;
+  const startX = -20;
+  const startY = height * (isMobile ? 0.72 : 0.65);
+  const initialLength = isMobile
+    ? Math.min(width * 0.45, 185)
+    : Math.min(width * 0.2, 280);
+  const initialAngle = -0.3;
+  const initialWidth = isMobile ? 7 : 9;
+
+  const rawBranches: GlobalTreeBranch[] = [];
+  const rawCanopy: GlobalTreeCanopy[] = [];
+
+  const buildSubTree = (
+    x: number,
+    y: number,
+    length: number,
+    angle: number,
+    depth: number,
+    maxDepth: number,
+    branchWidth: number
+  ) => {
+    if (depth > maxDepth) return;
+    const stepSize = 16;
+    const steps = Math.floor(length / stepSize);
+    for (let i = 0; i < steps; i++) {
+      const bx = x + Math.cos(angle) * (i * stepSize);
+      const by = y + Math.sin(angle) * (i * stepSize);
+      const currentWidth = branchWidth * (1 - (i / steps) * 0.5);
+      const numChars = Math.max(0, Math.floor(currentWidth / 4));
+
+      for (let w = -numChars; w <= numChars; w++) {
+        const jitterX = (prng() - 0.5) * 4;
+        const jitterY = (prng() - 0.5) * 4;
+        const wx = bx + Math.cos(angle + Math.PI / 2) * w * 8 + jitterX;
+        const wy = by + Math.sin(angle + Math.PI / 2) * w * 8 + jitterY;
+        rawBranches.push({
+          baseX: Math.round(wx * 10) / 10,
+          baseY: Math.round(wy * 10) / 10,
+          char: BARK_CHARS[Math.floor(prng() * BARK_CHARS.length)],
+          depth,
+          size: 12,
+        });
+      }
+    }
+
+    const endX = x + Math.cos(angle) * length;
+    const endY = y + Math.sin(angle) * length;
+
+    if (depth >= maxDepth - 2 || depth === 0) {
+      const isEnd = depth === maxDepth;
+      const numLeaves = isEnd
+        ? (isMobile ? 25 : 50)
+        : (depth === 0 ? (isMobile ? 15 : 30) : (isMobile ? 10 : 20));
+      const spread = isEnd ? (isMobile ? 35 : 60) : (isMobile ? 15 : 30);
+
+      for (let i = 0; i < numLeaves; i++) {
+        const r1 = Math.max(0.0001, prng());
+        const r2 = prng();
+        const radius = spread * Math.sqrt(-2.0 * Math.log(r1)) * Math.cos(2.0 * Math.PI * r2) * 0.4;
+        const theta = prng() * Math.PI * 2;
+        const cx = endX + Math.cos(theta) * radius;
+        const cy = endY + Math.sin(theta) * radius;
+
+        const leafChar = LEAF_CHARS[Math.floor(prng() * LEAF_CHARS.length)];
+        const isFlower = leafChar === "✿" || leafChar === "❀" || leafChar === "🌸";
+        const colorVariant = prng() > 0.4 ? 0 : 1;
+        const autumnChar = WITHERING_LEAF_GLYPHS[Math.floor(prng() * WITHERING_LEAF_GLYPHS.length)];
+        const autumnIndex = Math.floor(prng() * 100);
+
+        rawCanopy.push({
+          baseX: Math.round(cx * 10) / 10,
+          baseY: Math.round(cy * 10) / 10,
+          char: leafChar,
+          autumnChar,
+          autumnIndex,
+          phase: prng() * Math.PI * 2,
+          size: isMobile ? 11 : 14,
+          colorVariant,
+          isFlower,
+        });
+      }
+    }
+
+    if (depth < maxDepth) {
+      const numBranches = depth === 0 ? 2 : (prng() > 0.3 ? 2 : 1);
+      for (let i = 0; i < numBranches; i++) {
+        let newAngle = angle;
+        let newLength = length;
+        let newWidth = branchWidth;
+        if (depth === 0) {
+          if (i === 0) {
+            newAngle = angle - 0.2;
+            newLength = length * 0.9;
+            newWidth = branchWidth * 0.8;
+          } else {
+            newAngle = angle + 0.25;
+            newLength = length * 0.6;
+            newWidth = branchWidth * 0.6;
+          }
+        } else {
+          if (i === 0) {
+            newAngle = angle + (prng() * 0.3 - 0.15);
+            newLength = length * 0.8;
+            newWidth = branchWidth * 0.8;
+          } else {
+            newAngle = angle + (prng() > 0.5 ? 0.4 : -0.4);
+            newLength = length * 0.6;
+            newWidth = branchWidth * 0.6;
+          }
+        }
+        buildSubTree(endX, endY, newLength, newAngle, depth + 1, maxDepth, newWidth);
+      }
+    }
+  };
+
+  buildSubTree(startX, startY, initialLength, initialAngle, 0, isMobile ? 3 : 4, initialWidth);
+  buildSubTree(startX, startY + 20, initialLength * 0.5, 0.15, 0, isMobile ? 2 : 3, initialWidth * 0.7);
+
+  return {
+    seed,
+    width,
+    height,
+    branches: rawBranches,
+    canopy: rawCanopy,
+  };
+}
+
 export function AsciiBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const flashOverlayRef = useRef<HTMLDivElement>(null);
@@ -299,6 +541,16 @@ export function AsciiBackground() {
         if (txt) textColor = txt;
       }
 
+      const witheringPalette = getWitheringPalette(isLightMode);
+      canopy.forEach((c) => {
+        if (c.isFlower) {
+          c.color = isLightMode ? "#e11d48" : "#f472b6";
+        } else {
+          c.color = c.colorVariant === 1 ? secondaryColor : primaryColor;
+        }
+        c.autumnColor = witheringPalette[c.autumnIndex % witheringPalette.length];
+      });
+
       glyphCache.clear();
     };
 
@@ -324,144 +576,99 @@ export function AsciiBackground() {
       };
     };
 
-    const buildTree = (x: number, y: number, length: number, angle: number, depth: number, maxDepth: number, branchWidth: number) => {
-      if (depth > maxDepth) return;
-      const stepSize = 16; // Optimized step size from 12
-      const steps = Math.floor(length / stepSize);
-      for (let i = 0; i < steps; i++) {
-        const bx = x + Math.cos(angle) * (i * stepSize);
-        const by = y + Math.sin(angle) * (i * stepSize);
-        const currentWidth = branchWidth * (1 - (i / steps) * 0.5);
-        const numChars = Math.max(0, Math.floor(currentWidth / 4)); // Thicker branches
-
-        for (let w = -numChars; w <= numChars; w++) {
-          const jitterX = (Math.random() - 0.5) * 4;
-          const jitterY = (Math.random() - 0.5) * 4;
-          const wx = bx + Math.cos(angle + Math.PI / 2) * w * 8 + jitterX;
-          const wy = by + Math.sin(angle + Math.PI / 2) * w * 8 + jitterY;
-          branches.push({
-            x: wx,
-            y: wy,
-            baseX: wx,
-            baseY: wy,
-            char: BARK_CHARS[Math.floor(Math.random() * BARK_CHARS.length)],
-            color: tertiaryColor,
-            depth: depth,
-            size: 12
-          });
-        }
-      }
-
-      const endX = x + Math.cos(angle) * length;
-      const endY = y + Math.sin(angle) * length;
-
-      if (depth >= maxDepth - 2 || depth === 0) {
-        const isEnd = depth === maxDepth;
-        const isMobile = canvas.width < 768;
-
-        // Scale leaf count down on mobile and desktop to avoid lag and squishing
-        const numLeaves = isEnd
-          ? (isMobile ? 25 : 50)
-          : (depth === 0 ? (isMobile ? 15 : 30) : (isMobile ? 10 : 20));
-        const spread = isEnd ? (isMobile ? 35 : 60) : (isMobile ? 15 : 30);
-
-        for (let i = 0; i < numLeaves; i++) {
-          const r1 = Math.random();
-          const r2 = Math.random();
-          const radius = spread * Math.sqrt(-2.0 * Math.log(r1)) * Math.cos(2.0 * Math.PI * r2) * 0.4;
-          const theta = Math.random() * Math.PI * 2;
-          const cx = endX + Math.cos(theta) * radius;
-          const cy = endY + Math.sin(theta) * radius;
-
-          let leafChar = LEAF_CHARS[Math.floor(Math.random() * LEAF_CHARS.length)];
-          let leafColor = Math.random() > 0.4 ? primaryColor : secondaryColor;
-
-          if (is404Mode) {
-            leafChar = WITHERING_LEAF_GLYPHS[Math.floor(Math.random() * WITHERING_LEAF_GLYPHS.length)];
-            const palette = getWitheringPalette(isLightMode);
-            leafColor = palette[Math.floor(Math.random() * palette.length)];
+    const getOrInitGlobalTree = (w: number, h: number): GlobalTreeData => {
+      const cached = loadGlobalTree();
+      if (cached) {
+        const isMobileNow = w < 768;
+        const wasMobile = cached.width < 768;
+        // Keep tree continuous if device category is unchanged
+        if (isMobileNow === wasMobile) {
+          const deltaY = h - cached.height;
+          if (deltaY !== 0 && Math.abs(deltaY) < 220) {
+            // Anchor smoothly to bottom on minor height adjustments (e.g. mobile URL bar)
+            cached.branches.forEach((b) => {
+              b.baseY += deltaY;
+            });
+            cached.canopy.forEach((c) => {
+              c.baseY += deltaY;
+            });
+            cached.height = h;
+            cached.width = w;
+            saveGlobalTree(cached);
           }
-
-          canopy.push({
-            baseX: cx,
-            baseY: cy,
-            char: leafChar,
-            color: leafColor,
-            phase: Math.random() * Math.PI * 2,
-            size: isMobile ? 11 : 14 // slightly smaller leaves for high pixel density mobile displays
-          });
+          return cached;
         }
       }
 
-      if (depth < maxDepth) {
-        const numBranches = depth === 0 ? 2 : (Math.random() > 0.3 ? 2 : 1);
-        for (let i = 0; i < numBranches; i++) {
-          let newAngle = angle;
-          let newLength = length;
-          let newWidth = branchWidth;
-          if (depth === 0) {
-            if (i === 0) {
-              newAngle = angle - 0.2;
-              newLength = length * 0.9;
-              newWidth = branchWidth * 0.8;
-            } else {
-              newAngle = angle + 0.25;
-              newLength = length * 0.6;
-              newWidth = branchWidth * 0.6;
-            }
-          } else {
-            if (i === 0) {
-              newAngle = angle + (Math.random() * 0.3 - 0.15);
-              newLength = length * 0.8;
-              newWidth = branchWidth * 0.8;
-            } else {
-              newAngle = angle + (Math.random() > 0.5 ? 0.4 : -0.4);
-              newLength = length * 0.6;
-              newWidth = branchWidth * 0.6;
-            }
-          }
-          buildTree(endX, endY, newLength, newAngle, depth + 1, maxDepth, newWidth);
+      // First generation or major breakpoint transition (mobile <-> desktop):
+      const seed = cached?.seed ?? getOrCreateSessionSeed();
+      const newTree = generateDeterministicTree(w, h, seed);
+      saveGlobalTree(newTree);
+      return newTree;
+    };
+
+    const syncTreeFromGlobal = () => {
+      const treeData = getOrInitGlobalTree(canvas.width, canvas.height);
+      branches = treeData.branches.map((b) => ({
+        x: b.baseX,
+        y: b.baseY,
+        baseX: b.baseX,
+        baseY: b.baseY,
+        char: b.char,
+        color: tertiaryColor,
+        depth: b.depth,
+        size: b.size,
+      }));
+
+      const witheringPalette = getWitheringPalette(isLightMode);
+      canopy = treeData.canopy.map((c, idx) => {
+        let leafColor: string;
+        if (c.isFlower) {
+          leafColor = isLightMode ? "#e11d48" : "#f472b6";
+        } else {
+          leafColor = c.colorVariant === 1 ? secondaryColor : primaryColor;
         }
-      }
+        const autumnIndex = typeof c.autumnIndex === "number" ? c.autumnIndex : idx;
+        const autumnChar = c.autumnChar || c.char;
+        const autumnColor = witheringPalette[autumnIndex % witheringPalette.length];
+        return {
+          baseX: c.baseX,
+          baseY: c.baseY,
+          char: c.char,
+          color: leafColor,
+          autumnChar,
+          autumnColor,
+          autumnIndex,
+          phase: c.phase,
+          size: c.size,
+          colorVariant: c.colorVariant,
+          isFlower: c.isFlower,
+        };
+      });
     };
 
     const init = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       updateColors();
-      branches = [];
-      canopy = [];
-      fallingPetals = [];
-      coins = [];
-      floatTexts = [];
-      glyphCache.clear();
+      syncTreeFromGlobal();
+      updateColors();
 
-      const isMobile = canvas.width < 768;
-      const startX = -20;
-      const startY = canvas.height * (isMobile ? 0.72 : 0.65); // lower down on mobile to clear text
-      const initialLength = isMobile
-        ? Math.min(canvas.width * 0.45, 185)
-        : Math.min(canvas.width * 0.2, 280);
-      const initialAngle = -0.3;
-      const initialWidth = isMobile ? 7 : 9;
-
-      buildTree(startX, startY, initialLength, initialAngle, 0, isMobile ? 3 : 4, initialWidth);
-      buildTree(startX, startY + 20, initialLength * 0.5, 0.15, 0, isMobile ? 2 : 3, initialWidth * 0.7);
-
-      // Pre-seed falling leaves in 404 mode so user immediately sees vertical cascade
-      if (is404Mode && canopy.length > 0) {
-        for (let i = 0; i < 28; i++) {
+      // Pre-seed falling leaves in 404 mode so user immediately sees atmospheric vertical cascade
+      if (is404Mode && canopy.length > 0 && fallingPetals.length === 0) {
+        for (let i = 0; i < 20; i++) {
           const source = canopy[Math.floor(Math.random() * canopy.length)];
-          const petal = new FallingPetal(
-            source.baseX + (Math.random() - 0.2) * (canvas.width * 0.45),
-            Math.random() * canvas.height,
-            primaryColor,
-            secondaryColor,
-            isLightMode,
-            true,
-            source.char
+          fallingPetals.push(
+            new FallingPetal(
+              source.baseX + (Math.random() - 0.2) * (canvas.width * 0.45),
+              Math.random() * canvas.height,
+              primaryColor,
+              secondaryColor,
+              isLightMode,
+              true,
+              source.autumnChar
+            )
           );
-          fallingPetals.push(petal);
         }
       }
     };
@@ -506,7 +713,7 @@ export function AsciiBackground() {
               secondaryColor,
               isLightMode,
               is404Mode,
-              source.char
+              is404Mode ? source.autumnChar : source.char
             )
           );
         }
@@ -732,7 +939,7 @@ export function AsciiBackground() {
 
       // Draw Branches
       ctx.globalAlpha = isDomainExpansion ? 0.8 : (isLightMode ? 0.75 : 0.35); // Flash solid during domain; increase opacity in light mode for visibility
-      const branchColor = isDomainExpansion ? "#ffffff" : is404Mode ? (isLightMode ? "#475569" : "#334155") : tertiaryColor;
+      const branchColor = isDomainExpansion ? "#ffffff" : tertiaryColor;
       const branchFont = "12px monospace";
       branches.forEach(b => {
         const swayX = Math.sin(time * 0.001 + b.depth) * b.depth * 0.5 + (gustWind * (b.depth + 1) * 0.6);
@@ -775,9 +982,15 @@ export function AsciiBackground() {
         // Scramble to Katakana during Domain Expansion (deterministic matrix-like effect)
         const displayChar = isDomainExpansion
           ? KATAKANA[(Math.floor(time / 150) + idx) % KATAKANA.length]
+          : is404Mode
+          ? c.autumnChar
           : c.char;
 
-        const leafColor = isDomainExpansion ? "#ff0044" : c.color;
+        const leafColor = isDomainExpansion
+          ? "#ff0044"
+          : is404Mode
+          ? c.autumnColor
+          : c.color;
         const glyph = getGlyphCanvas(displayChar, leafColor, canopyFont, c.size);
         ctx.drawImage(glyph, drawX + offset.x - glyph.width / 2, drawY + offset.y - glyph.height / 2);
       });
@@ -837,7 +1050,7 @@ export function AsciiBackground() {
                 secondaryColor,
                 isLightMode,
                 true,
-                leaf.char
+                leaf.autumnChar
               )
             );
           }
@@ -1235,8 +1448,39 @@ export function AsciiBackground() {
       const nextMode = ce.detail?.active ?? true;
       if (is404Mode !== nextMode) {
         is404Mode = nextMode;
-        init();
+        // Never wipe or re-create the tree! It is global for the entire session across all pages and states.
+        if (is404Mode && fallingPetals.length < 15 && canopy.length > 0) {
+          for (let i = 0; i < 15; i++) {
+            const source = canopy[Math.floor(Math.random() * canopy.length)];
+            fallingPetals.push(
+              new FallingPetal(
+                source.baseX + (Math.random() - 0.2) * (canvas.width * 0.45),
+                Math.random() * canvas.height,
+                primaryColor,
+                secondaryColor,
+                isLightMode,
+                true,
+                source.autumnChar
+              )
+            );
+          }
+        }
       }
+    };
+
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const handleResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        const newW = window.innerWidth;
+        const newH = window.innerHeight;
+        if (canvas.width !== newW || canvas.height !== newH) {
+          canvas.width = newW;
+          canvas.height = newH;
+          syncTreeFromGlobal();
+          updateColors();
+        }
+      }, 150);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1252,7 +1496,7 @@ export function AsciiBackground() {
     };
     mediaQuery.addEventListener("change", handleThemeChange);
 
-    window.addEventListener("resize", init);
+    window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mousedown", handleMouseDown);
@@ -1285,7 +1529,8 @@ export function AsciiBackground() {
 
     return () => {
       mediaQuery.removeEventListener("change", handleThemeChange);
-      window.removeEventListener("resize", init);
+      if (resizeTimer) clearTimeout(resizeTimer);
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleMouseDown);
