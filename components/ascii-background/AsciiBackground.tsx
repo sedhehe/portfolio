@@ -138,6 +138,7 @@ class FallingPetal {
   isShiny: boolean;
   isWithering: boolean;
   life: number;
+  swept: boolean = false;
 
   constructor(
     startX: number,
@@ -182,7 +183,23 @@ class FallingPetal {
     }
   }
 
-  update(time: number, globalWind: number, gustWind = 0) {
+  sweepWithWind(windStrength = 7.0) {
+    this.isWithering = false;
+    this.swept = true;
+    // Strong horizontal wind propulsion to carry the leaf across the viewport
+    this.speedX = Math.random() * 1.6 + 2.4 + windStrength * 0.35;
+    // Dynamic upward/fluttering swirl as the gust catches underneath
+    this.speedY = -(Math.random() * 0.8 + 0.25);
+    this.rotSpeed = (Math.random() - 0.5) * 0.07;
+    // Refresh life so the leaf completes its journey across the viewport
+    this.life = Math.max(this.life, 0.85);
+  }
+
+  update(time: number, globalWind: number, gustWind = 0, is404Active = true) {
+    if (this.isWithering && !is404Active) {
+      this.sweepWithWind(gustWind > 0 ? gustWind : 7.0);
+    }
+
     if (this.isWithering) {
       // 404 Mode: Vertical cascade downward with steady gravity
       this.y += this.speedY + Math.sin(time * 0.002 + this.phase) * 0.2;
@@ -203,6 +220,18 @@ class FallingPetal {
         this.char = Math.random() < 0.5 ? "·" : "~";
       }
     } else {
+      // Normal flight or post-sweep flight:
+      if (this.swept) {
+        // Smoothly ease upward flutter into gentle floating descent matching normal leaves
+        if (this.speedY < 0.22) {
+          this.speedY += 0.02;
+        }
+        // Smoothly ease high burst speed back towards normal ambient speed
+        if (this.speedX > 1.2) {
+          this.speedX -= 0.025;
+        }
+      }
+
       // Normal Page: Signature ambient wind drift
       const effectiveWind = globalWind + gustWind;
       this.x += this.speedX * (effectiveWind > 0 ? 1 : 0) + effectiveWind + Math.sin(time * 0.001 + this.phase) * 1.2;
@@ -862,7 +891,8 @@ export function AsciiBackground() {
       let globalWind = Math.sin(time * 0.0002) * 0.5 + 0.5;
 
       if (gustWind > 0) {
-        gustWind *= 0.93;
+        const decayRate = gustWind > 4.0 ? 0.962 : 0.94;
+        gustWind *= decayRate;
         if (gustWind < 0.02) gustWind = 0;
       }
 
@@ -1061,7 +1091,7 @@ export function AsciiBackground() {
       ctx.globalAlpha = isDomainExpansion ? 0.8 : (isLightMode ? 0.75 : 0.5); // increase opacity in light mode
       for (let i = fallingPetals.length - 1; i >= 0; i--) {
         const p = fallingPetals[i];
-        p.update(time, globalWind, gustWind);
+        p.update(time, globalWind, gustWind, is404Mode);
 
         const dx = p.x - canvasMouseX;
         const dy = p.y - canvasMouseY;
@@ -1443,13 +1473,40 @@ export function AsciiBackground() {
       }
     };
 
+    let lastSweepTime = 0;
+
     const handle404Mode = (e: Event) => {
       const ce = e as CustomEvent<{ active?: boolean }>;
       const nextMode = ce.detail?.active ?? true;
       if (is404Mode !== nextMode) {
         is404Mode = nextMode;
         // Never wipe or re-create the tree! It is global for the entire session across all pages and states.
-        if (is404Mode && fallingPetals.length < 15 && canopy.length > 0) {
+        if (!is404Mode) {
+          // Returning to normal page: sweep all lingering 404 leaves away with the wind so none fall awkwardly in the corner
+          gustWind = Math.max(gustWind, 8.0);
+          fallingPetals.forEach((p) => {
+            p.sweepWithWind(7.5);
+          });
+          const now = Date.now();
+          if (now - lastSweepTime >= 600 && canopy.length > 0) {
+            lastSweepTime = now;
+            for (let i = 0; i < 35; i++) {
+              const source = canopy[Math.floor(Math.random() * canopy.length)];
+              const newPetal = new FallingPetal(
+                source.baseX + (Math.random() - 0.2) * 90,
+                source.baseY + (Math.random() - 0.5) * 110,
+                primaryColor,
+                secondaryColor,
+                isLightMode,
+                false,
+                source.char
+              );
+              newPetal.sweepWithWind(7.5);
+              newPetal.x += (Math.random() - 0.4) * 60;
+              fallingPetals.push(newPetal);
+            }
+          }
+        } else if (is404Mode && fallingPetals.length < 15 && canopy.length > 0) {
           for (let i = 0; i < 15; i++) {
             const source = canopy[Math.floor(Math.random() * canopy.length)];
             fallingPetals.push(
@@ -1464,6 +1521,42 @@ export function AsciiBackground() {
               )
             );
           }
+        }
+      }
+    };
+
+    const handleSweep404Leaves = (e: Event) => {
+      const ce = e as CustomEvent<{ strength?: number; spawnCount?: number }>;
+      const strength = ce.detail?.strength ?? 8.5;
+      const count = ce.detail?.spawnCount ?? 35;
+      gustWind = Math.max(gustWind, strength);
+      is404Mode = false;
+
+      // Immediately sweep all existing withering leaves into horizontal flight
+      fallingPetals.forEach((p) => {
+        p.sweepWithWind(strength);
+      });
+
+      const now = Date.now();
+      if (now - lastSweepTime < 600) return;
+      lastSweepTime = now;
+
+      // Spawn a flurry of fresh normal leaves to ride the wind along with the swept leaves
+      if (canopy.length > 0) {
+        for (let i = 0; i < count; i++) {
+          const source = canopy[Math.floor(Math.random() * canopy.length)];
+          const newPetal = new FallingPetal(
+            source.baseX + (Math.random() - 0.2) * 90,
+            source.baseY + (Math.random() - 0.5) * 110,
+            primaryColor,
+            secondaryColor,
+            isLightMode,
+            false,
+            source.char
+          );
+          newPetal.sweepWithWind(strength);
+          newPetal.x += (Math.random() - 0.4) * 60;
+          fallingPetals.push(newPetal);
         }
       }
     };
@@ -1510,6 +1603,7 @@ export function AsciiBackground() {
     window.addEventListener("tree:gust", handleTreeGust);
     window.addEventListener("tree:slash", handleTreeSlash);
     window.addEventListener("tree:404_mode", handle404Mode);
+    window.addEventListener("tree:sweep_404_leaves", handleSweep404Leaves);
 
     const checkIs404 = () => {
       if (typeof window === "undefined") return false;
@@ -1544,6 +1638,7 @@ export function AsciiBackground() {
       window.removeEventListener("tree:gust", handleTreeGust);
       window.removeEventListener("tree:slash", handleTreeSlash);
       window.removeEventListener("tree:404_mode", handle404Mode);
+      window.removeEventListener("tree:sweep_404_leaves", handleSweep404Leaves);
 
       if (flashFadeTimer) clearTimeout(flashFadeTimer);
       if (flashCleanTimer) clearTimeout(flashCleanTimer);

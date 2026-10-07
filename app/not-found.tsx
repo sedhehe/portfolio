@@ -149,6 +149,11 @@ export default function NotFound() {
           detail: { active: false },
         })
       );
+      window.dispatchEvent(
+        new CustomEvent("tree:sweep_404_leaves", {
+          detail: { strength: 8.5, spawnCount: 35 },
+        })
+      );
     };
   }, [scramble404]);
 
@@ -188,6 +193,16 @@ export default function NotFound() {
       }
     }, 40);
   };
+
+  const handleRedirectClick = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("tree:sweep_404_leaves", {
+          detail: { strength: 8.5, spawnCount: 35 },
+        })
+      );
+    }
+  }, []);
 
   return (
     <section
@@ -239,6 +254,7 @@ export default function NotFound() {
           <div className="pt-2 w-full sm:w-auto">
             <Link
               href="/"
+              onClick={handleRedirectClick}
               onMouseEnter={triggerRustle}
               onTouchStart={triggerRustle}
               onFocus={triggerRustle}
